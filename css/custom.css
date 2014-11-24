@@ -1,0 +1,56 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  margin:0px;  
+}
+
+#infoWrapper {
+  overflow: auto;
+}
+.container-fluid, .col-map {
+  padding: 0;
+}
+
+
+.mappedMarkers {
+	cursor: pointer;
+}
+.municipalityPolygon {
+  stroke: #f5f5f5;
+  fill: #ed1b2e;
+  cursor: pointer;
+  opacity: 0.6;
+  stroke-width: 2px;
+}
+.barangayPolygon {
+  cursor: pointer;
+}
+
+
+.btn:focus, .btn:hover, .btn:active {
+  outline: 0 !important;
+}
+
+#loading {
+  position: absolute;
+  z-index: 99999;
+  width: 100%;
+  text-align: center;
+}
+#loader{
+  height: 280px;
+  margin-top: 10px;
+}
+
+#tooltip {                      
+    position:absolute;
+    z-index:999;
+    font-size:14px;
+    color: #1a1a1a;       
+    background-color: rgba(245,245,245,1);
+    border-radius: 3px;
+    padding: 2px;       
+}    
+#tooltip:empty {
+    display:none;
+}
