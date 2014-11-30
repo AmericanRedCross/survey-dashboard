@@ -4,7 +4,10 @@ var activeMunicipalityCode = "";
 var activeBarangayName = "ALL";
 var activeBarangayCode = "";
 
-var municipalityGeoData = [];
+var shownSurveysCount = 0;
+
+
+var analysisPlan = [];
 
 var surveyData = [];
 var visibleFeatures = {
@@ -12,6 +15,21 @@ var visibleFeatures = {
  	"features": []
 };
 
+
+var color12 = [
+  "#a6cee3",
+  "#1f78b4",
+  "#b2df8a",
+  "#33a02c",
+  "#fb9a99",
+  "#e31a1c",
+  "#fdbf6f",
+  "#ff7f00",
+  "#cab2d6",
+  "#6a3d9a",
+  "#ffff99",
+  "#b15928"
+];
 
 // comma seperator for thousands
 var formatCommas = d3.format(",");
@@ -52,6 +70,10 @@ var map = new L.Map("map", {
   	layers: [hot]
 });
 
+
+var mappedHeatPoints = [];
+var heatLayer = new L.heatLayer(mappedHeatPoints).addTo(map);
+
 var baseMaps = {
 	"Grey": greyscale,
 	"Streets": mapboxStreets,
@@ -82,15 +104,14 @@ map._initPathRoot()
 
 // pick up the SVG from the map object 
 var svg = d3.select("#map").select("svg");
-var municipalityGroup = svg.append('g').attr("id", "municipalities");
-var barangayGroup = svg.append('g').attr("id", "barangays");
+// var municipalityGroup = svg.append('g').attr("id", "municipalities");
+// var barangayGroup = svg.append('g').attr("id", "barangays");
 var markersGroup = svg.append('g').attr("id", "markers");
 
 
 
-
 function getSurveyData(){
-	d3.csv("data/Alang_Alang_shelter_working.csv", function(data){ 
+	d3.csv("data/Alang_Alang_GIS.csv", function(data){ 
 		surveyData = data;
     // add a LatLng object to each item in the dataset
     surveyData.forEach(function(d) {
@@ -100,7 +121,8 @@ function getSurveyData(){
     var mappedMarkers = markersGroup.selectAll("circle")
       .data(surveyData)
       .enter().append("circle").attr("r", 4).attr('stroke','none')
-      .style('display','none')
+      .attr("fill", "#6d6e70")
+      .style('display','inline')
       .attr('class','mappedMarkers')
       .on("click",clickedMarker);
     // when map view changes adjust the locations of the svg circles
@@ -110,58 +132,40 @@ function getSurveyData(){
     }
     map.on("viewreset", updatemarker);
     updatemarker(); 
-    getMunicipalityGeo();
+    setupSurveyAnalysis();
   });
 }
 
-function getMunicipalityGeo(){
-	d3.json("data/targetmunicipalities.json", function(data) {
-    municipalityGeoData = data;
-		var mappedMunicipalities = municipalityGroup.selectAll("path")
-			.data(data.features)
-			.enter().append("path")
-			.attr("class", "municipalityPolygon")
-			.attr("d", path)
-			.on("click",municipalityClick)
-			.on("mouseover", function(d){ 
-				var tooltipText = "<strong>" + d.properties.name_2 + "</strong>";
-				$('#tooltip').append(tooltipText);                
-			})
-			.on("mouseout", function(){ 
-				$('#tooltip').empty();        
-			});
-		function updateMpath(){
-			mappedMunicipalities.attr("d", path);
-		}
-		map.on("viewreset", updateMpath);
-    getBarangayGeo();
-	});
-}
-
-function getBarangayGeo(){
-  d3.json("data/barangays.json", function(data) {
-    var mappedBarangays = barangayGroup.selectAll("path")
-      .data(data.features)
-      .enter().append("path")
-      .attr("class", "barangayPolygon")
-      .attr("d", path)
-      .style("display","none")
-      .on("click", barangayClick)
-      .on("mouseover", function(d){ 
-        var tooltipText = "<strong>" + d.properties.name_3 + "</strong>";
-        $('#tooltip').append(tooltipText);                
-      })
-      .on("mouseout", function(){ 
-        $('#tooltip').empty();        
-      });
-    function updateBpath(){
-      mappedBarangays.attr("d", path);
+function setupSurveyAnalysis(){
+  d3.csv("data/analysis_plan.csv", function(data){
+    analysisPlan = data;
+    var categoryList = [];
+    $.each(analysisPlan, function(index, analyzeThis){
+      if($.inArray(analyzeThis["Category"], categoryList) === -1){
+        categoryList.push(analyzeThis["Category"]);
+      }
+    });
+    categoryList = categoryList.sort(); 
+    for(var i = 0; i < categoryList.length; i++) {
+      var item = categoryList[i];
+      var fillListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-fill-options-' + item.replace(/\s+/g, '') + '"></div>';  
+      var heatListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-heat-options-' + item.replace(/\s+/g, '') + '"></div>';  
+      $('#modal-fill-options').append(fillListSectionHtml);  
+      $('#modal-heat-options').append(heatListSectionHtml);   
     }
-    map.on("viewreset", updateBpath);
-    buildMunicipalityDropdown();
+    $.each(analysisPlan, function(index, analyzeThis){
+      var dataDescription = analyzeThis["Data Description"];
+      var variableName = analyzeThis["Variable Name"];
+      var fillListItemHtml = '<a id="fill-question-'+ variableName +'" href="#" onClick="fillQuestionSelect(' +"'"+ variableName +"', this"+ '); return false;">' + dataDescription + "</a><br>";
+      var heatListItemHtml = '<a id="heat-question-'+ variableName +'" href="#" onClick="heatQuestionSelect(' +"'"+ variableName +"', this"+ '); return false;">' + dataDescription + "</a><br>";
+      var fillSelector = "#modal-fill-options-" + analyzeThis["Category"];
+      var heatSelector = "#modal-heat-options-" + analyzeThis["Category"];
+      $(fillSelector).append(fillListItemHtml);
+      $(heatSelector).append(heatListItemHtml);
+    });
+  buildMunicipalityDropdown();  
   });
 }
-
 
 function buildMunicipalityDropdown() {
   // get list of muncipalities from survey data
@@ -171,7 +175,7 @@ function buildMunicipalityDropdown() {
     var thisMunicipality = survey["municipalityname"];
     if($.inArray(thisMunicipality, municipalityList) === -1){
       municipalityList.push(thisMunicipality);
-      municipalityAdminLookup[thisMunicipality] = survey["p_2"];
+      municipalityAdminLookup[thisMunicipality] = survey["Mun_Code"];
     }
   });
   // sort so that the admins appear in alphabetical order in dropdown
@@ -186,31 +190,127 @@ function buildMunicipalityDropdown() {
   $("#loading").fadeOut(300);
 }
 
+
+
+
+function fillQuestionSelect(variableSelected, listItem){
+  $('#modal-fill').modal('hide');
+  $("#legend-fill").empty();
+  $("#legend-fill-title").html($(listItem).html());
+  var possibleFillAnswers = [];
+  $.each(surveyData, function(index, survey){
+    if($.inArray(survey[variableSelected], possibleFillAnswers) === -1){
+      possibleFillAnswers.push(survey[variableSelected]);
+    }
+  });
+  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers 
+  // then trim first 2 characters??? hacky as hell
+  possibleFillAnswers.sort();
+  $.each(possibleFillAnswers, function(index, answer){
+    var thisHtml ='<div data-fillanswer="' + answer + '"><span class="fillColorBox"></span>' + answer + '</div>';
+    $("#legend-fill").append(thisHtml);
+  });
+  // color legend
+  d3.selectAll("#legend-fill span").style("background-color", function(d, i) {
+    return color12[i];
+  });
+  // color markers on map based on legend colors
+  $(possibleFillAnswers).each(function(index, answer){  
+    var filtered = markersGroup.selectAll("circle")
+      .filter(function(d) { return d[variableSelected] === answer });
+    var colorSearch = "[data-fillanswer='" + answer + "']";
+    var color = $(colorSearch).children().css("background-color");
+    var colorHex = d3.rgb(color).toString();
+    filtered.attr("fill", colorHex);
+  });
+}
+
+function heatQuestionSelect(variableSelected, listItem){
+  map.removeLayer(heatLayer);
+  $('#modal-heat').modal('hide');
+  $("#legend-heat").empty();
+  $("#legend-heat-title").html($(listItem).html());
+  var possibleHeatAnswers = [];
+  $.each(surveyData, function(index, survey){
+    if($.inArray(survey[variableSelected], possibleHeatAnswers) === -1){
+      possibleHeatAnswers.push(survey[variableSelected]);
+    }
+  });
+  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers 
+  // then trim first 2 characters??? hacky as hell
+  possibleHeatAnswers.sort();
+  $.each(possibleHeatAnswers, function(index, answer){
+    var thisHtml ='<div class="legend-heat-option" onClick="toggleHeat(this)"' +
+      'data-heatvariable="' + variableSelected + '" ' +
+      'data-heatanswer="' + answer + '"><span class="heatColorBox"></span>' + answer + '</div>';
+    $("#legend-heat").append(thisHtml);
+  });
+}
+
+function toggleHeat(clicked){
+  console.log(clicked);
+  if($(clicked).hasClass("heatMapped") === false){
+    d3.selectAll(".legend-heat-option").classed("heatMapped", false);
+    $(clicked).addClass("heatMapped");
+    setHeat();
+    
+  } else {
+    d3.selectAll(".legend-heat-option").classed("heatMapped", false);
+    setHeat();
+  }
+}
+
+function setHeat(){
+  console.log($(".legend-heat-option.heatMapped").length);
+  if($(".legend-heat-option.heatMapped").length == 1){
+    // add heat map
+    var thisAnswer = $(".legend-heat-option.heatMapped").attr("data-heatanswer");
+    var thisVariable = $(".legend-heat-option.heatMapped").attr("data-heatvariable");
+    var mappedHeatPoints = [];
+    markersGroup.selectAll("circle")
+      .filter(function(d) {return this.style.display == 'inline'})
+      .filter(function(d) {return d[thisVariable] == thisAnswer})
+      .each(function(d){ mappedHeatPoints.push(d.LatLng); });
+    heatLayer.setLatLngs(mappedHeatPoints);
+    heatLayer.addTo(map);
+  } else {
+    map.removeLayer(heatLayer);
+  }
+}
+
+
+
+
 function municipalitySelect(p2){
   activeMunicipalityCode = p2;
   activeBarangay = "ALL";
+
   markersGroup.selectAll("circle").style('display', 'none');
+  markersGroup.selectAll("circle")
+    .filter(function(d) {return d["Mun_Code"] == activeMunicipalityCode})
+    .style('display', 'inline');
+  setHeat();
+
   var selector = "#" + p2;
   activeMunicipalityName = $(selector).html();
   $("#selected-admin-label").html(activeMunicipalityName);
-  buildBarangayDropdown();
-}
-
-function buildBarangayDropdown() {
+  
+  //build barangay dropdown
   $('#dropdown-menu-barangay').empty();
   var barangayList = [];
   var barangayAdminLookup = {};
-  var theseSurveysCount = 0;
+  shownSurveysCount = 0;
   $.each(surveyData, function(index, survey){
-    var thisBarangay = survey["barangayname"];
-    if(survey["p_2"] === activeMunicipalityCode){
-      theseSurveysCount ++;
+    if(survey["Mun_Code"] === activeMunicipalityCode){
+      shownSurveysCount ++;
+      var thisBarangay = survey["barangayname"];
       if($.inArray(thisBarangay, barangayList) === -1){
         barangayList.push(thisBarangay);
-        barangayAdminLookup[thisBarangay] = survey["p_3"];
+        barangayAdminLookup[thisBarangay] = survey["Bar_Code"];
       }
     }
   });
+  $("#selected-survey-count").html(formatCommas(shownSurveysCount));
   // sort so that they appear in alphabetical order in dropdown
   barangayList = barangayList.sort(); 
   // create item elements in dropdown list   
@@ -219,37 +319,39 @@ function buildBarangayDropdown() {
       var listItemHtml = '<li><a id="'+ barangayAdminLookup[item] +'" href="#" onClick="barangaySelect(' +"'"+ barangayAdminLookup[item] +"'"+ '); return false;">' + item + "</a></li>";
       $('#dropdown-menu-barangay').append(listItemHtml);       
   }
-  $("#selected-survey-count").html(formatCommas(theseSurveysCount));
 
-  // map stuff
-
-  municipalityGroup.selectAll("path")
-    .style({'fill': 'none', 'stroke': "#000"});
-  visibleFeatures.features = [];
-  for(entry in barangayAdminLookup){
-    barangayGroup.selectAll("path")
-        .filter(function(d) {return d.properties.p_3 == barangayAdminLookup[entry]})
-        .each(function(d) {visibleFeatures.features.push(d);})
-        .style('display', 'inline')
-        .style('fill',"#f36471");
-  }
   mapToBounds(); 
 }
+
 
 function barangaySelect(p3) {
   activeBarangayCode = p3;
   var selector = "#" + p3;
   activeBarangayName = $(selector).html();
   $("#selected-admin-label").html(activeMunicipalityName + ", "+ activeBarangayName);
-  var theseSurveysCount = 0;
+  
+  markersGroup.selectAll("circle").style('display', 'none');
+  markersGroup.selectAll("circle")
+    .filter(function(d) {return d["Bar_Code"] == activeBarangayCode})
+    .style('display', 'inline');
+  setHeat();
+
+  shownSurveysCount = 0;
   $.each(surveyData, function(index, survey){
-    if(survey["p_3"] === activeBarangayCode){
-      theseSurveysCount ++;
+    if(survey["Bar_Code"] === activeBarangayCode){
+      shownSurveysCount ++;
     }
   });
-  barangayGroup.selectAll("path").style({'fill': 'none', 'stroke': "red"});
-  // build FeatureCollection in order to use d3 to get bounds or points
+  $("#selected-survey-count").html(formatCommas(shownSurveysCount));
+
+  mapToBounds();
+}
+
+
+function mapToBounds(){
+  // build FeatureCollection in order to use d3 to get bounds of points
   visibleFeatures.features = [];
+  //function to take csv to geojson for adding point to FeatureCollection
   function markerToJSON(input){
     var thisPoint = {
       "type": "Feature",
@@ -264,19 +366,11 @@ function barangaySelect(p3) {
     };
     visibleFeatures.features.push(thisPoint);
   }
-  markersGroup.selectAll("circle").style('display', 'none');
+  // add geojson points to FeatureCollection for all visible markers
   markersGroup.selectAll("circle")
-    .filter(function(d) {return d.p_3 == activeBarangayCode})
-    .each(function(d){ markerToJSON(d) })
-    .style('display', 'inline');
-  $("#selected-survey-count").html(formatCommas(theseSurveysCount));
-  mapToBounds();
-}
-
-  
-
-
-function mapToBounds(){
+    .filter(function(d) {return this.style.display == 'inline'})
+    .each(function(d){ markerToJSON(d) });
+  // get bounds of all visible markers
   bounds = d3.geo.bounds(visibleFeatures);
   // reformat bounds arrays for compatibility with Leaflet and fit map to bounds
   var padding = {"padding":[0,0]};
@@ -284,58 +378,30 @@ function mapToBounds(){
 }
 
 
-// bottom circle layer with tranparency 
-// and halo of color for highlighting filtered selections?
-
-/*  Right column  */
-// zoom dropdowns 
-// filter controls
-
-/*  On Click  */
-// modals with either pie charts (on admin levels)
-// or ben info (on markers)
 
 
-
-// on municipality click open modal
-function municipalityClick(e) {
-  var thisName = e.properties.name_2;
-  $('.modal-title').html(thisName);
-  $('.modal-body').html("<h5>Lorem ipsum</h5><p>Municipal level data could appear here. For example, a graph of percentage complete.");
-  console.log(e);
-  $('#modal1').modal();     
-}
-// on brgy click open modal
-function barangayClick(e) {
-  var thisBrgy = e.properties.name_3;
-  var thisMunicip = e.properties.name_2;
-  $('.modal-title').html("Barangay " + thisBrgy + ", " + thisMunicip);
-  $('.modal-body').html("<h5>Lorem ipsum</h5><p>Barangay level data could appear here. For example, a graph of percentage complete.");
-  $('#modal1').modal();     
-}
 
 function clickedMarker(e){
   // -d- is the data object
   // -this- is the svg circle element
-  $('.modal-title').html("Beneficiary!");
-  $('.modal-body').html("<strong><u>" + e.enumerator + "</u></strong> was the enumerator. All other data has been stripped until this site is made private.");
-  $('#modal1').modal();   
+  $('#modal-ben-title').html("Beneficiary!");
+  $('#modal-ben-body').html("<strong><u>" + e.enumerator + "</u></strong> wasn't the enumerator. Data currently scrambled while working progress is public. Nothing else coded to appear here yet.");
+  $('#modal-ben').modal();   
 }
 
 
 
 function resetAdmin() {
-  visibleFeatures.features = municipalityGeoData.features;
-  mapToBounds();
   activeMunicipalityName = "ALL";
   activeBarangayName = "ALL";
   activeMunicipalityCode = "";
   activeBarangayCode = "";
-  municipalityGroup.selectAll("path")
-    .style({'fill': 'red', 'stroke': "#ffffff"});
-  barangayGroup.selectAll("path")
-    .style('display', 'none');
-  markersGroup.selectAll("circle").style('display', 'none');
+  // municipalityGroup.selectAll("path")
+  //   .style({'fill': 'red', 'stroke': "#ffffff"});
+  // barangayGroup.selectAll("path")
+  //   .style('display', 'none');
+  markersGroup.selectAll("circle").style('display', 'inline');
+  mapToBounds("agree_to_participate", "yes");
   $('#dropdown-menu-barangay').html('<li class="disabled"><a role="menuitem" href="#">First select a municipality</a></li>');
   $("#selected-admin-label").html("All surveyed areas");
   $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
@@ -367,3 +433,78 @@ $(window).resize(function(){
 
 
 getSurveyData();
+
+
+
+
+
+
+// function getMunicipalityGeo(){
+// 	d3.json("data/targetmunicipalities.json", function(data) {
+//     municipalityGeoData = data;
+// 		var mappedMunicipalities = municipalityGroup.selectAll("path")
+// 			.data(data.features)
+// 			.enter().append("path")
+// 			.attr("class", "municipalityPolygon")
+// 			.attr("d", path)
+// 			.on("click",municipalityClick)
+// 			.on("mouseover", function(d){ 
+// 				var tooltipText = "<strong>" + d.properties.name_2 + "</strong>";
+// 				$('#tooltip').append(tooltipText);                
+// 			})
+// 			.on("mouseout", function(){ 
+// 				$('#tooltip').empty();        
+// 			});
+// 		function updateMpath(){
+// 			mappedMunicipalities.attr("d", path);
+// 		}
+// 		map.on("viewreset", updateMpath);
+//     getBarangayGeo();
+// 	});
+// }
+
+// function getBarangayGeo(){
+//   d3.json("data/barangays.json", function(data) {
+//     var mappedBarangays = barangayGroup.selectAll("path")
+//       .data(data.features)
+//       .enter().append("path")
+//       .attr("class", "barangayPolygon")
+//       .attr("d", path)
+//       .style("display","none")
+//       .on("click", barangayClick)
+//       .on("mouseover", function(d){ 
+//         var tooltipText = "<strong>" + d.properties.name_3 + "</strong>";
+//         $('#tooltip').append(tooltipText);                
+//       })
+//       .on("mouseout", function(){ 
+//         $('#tooltip').empty();        
+//       });
+//     function updateBpath(){
+//       mappedBarangays.attr("d", path);
+//     }
+//     map.on("viewreset", updateBpath);
+//     buildMunicipalityDropdown();
+//   });
+// }
+
+
+
+
+
+// // on municipality click open modal
+// function municipalityClick(e) {
+//   var thisName = e.properties.name_2;
+//   $('.modal-title').html(thisName);
+//   $('.modal-body').html("<h5>Lorem ipsum</h5><p>Municipal level data could appear here. For example, a graph of percentage complete.");
+//   console.log(e);
+//   $('#modal1').modal();     
+// }
+// // on brgy click open modal
+// function barangayClick(e) {
+//   var thisBrgy = e.properties.name_3;
+//   var thisMunicip = e.properties.name_2;
+//   $('.modal-title').html("Barangay " + thisBrgy + ", " + thisMunicip);
+//   $('.modal-body').html("<h5>Lorem ipsum</h5><p>Barangay level data could appear here. For example, a graph of percentage complete.");
+//   $('#modal1').modal();     
+// }
+
