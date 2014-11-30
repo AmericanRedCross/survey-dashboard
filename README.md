@@ -3,4 +3,4 @@
 - [Bootstrap](http://getbootstrap.com/) v3.3.0
 - [jQuery](https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js) v1.11.1
 - [Leaflet.js](http://leafletjs.com/) v0.7.3
-- [Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster) downloaded 2014-11-05
+- [Leaflet.heat](https://github.com/Leaflet/Leaflet.heat) v0.1.2
