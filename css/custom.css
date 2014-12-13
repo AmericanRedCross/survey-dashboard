@@ -14,12 +14,19 @@ svg {
   z-index: 9999;
 }
 
+hr {
+  margin: 10px 0px;
+}
+
 #conductedForAreaCount, #filteredForAreaCount {
   font-weight: bold;
 }
 
 
-
+.filterQuestionBox {
+  margin-top: 6px;
+  border-bottom: 1px solid #6d6e70;
+}
 
 .mappedMarkers {
 	cursor: pointer;
