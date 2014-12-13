@@ -1,11 +1,10 @@
 // global variables
-var activeMunicipalityName = "ALL";
-var activeMunicipalityCode = "";
-var activeBarangayName = "ALL";
-var activeBarangayCode = "";
+var activeMunicipalityName = "";
+var activeMunicipalityCode = "ALL";
+var activeBarangayName = "";
+var activeBarangayCode = "ALL";
 
 var shownSurveysCount = 0;
-
 
 var analysisPlan = [];
 
@@ -120,8 +119,8 @@ function getSurveyData(){
     // add a circle to the svg markers group for each survey point
     var mappedMarkers = markersGroup.selectAll("circle")
       .data(surveyData)
-      .enter().append("circle").attr("r", 4).attr('stroke','none')
-      .attr("fill", "#6d6e70")
+      .enter().append("circle").attr("r", 4).attr('stroke','black')
+      .attr("fill", "#ed1b2e")
       .style('display','inline')
       .attr('class','mappedMarkers')
       .on("click",clickedMarker);
@@ -148,24 +147,21 @@ function setupSurveyAnalysis(){
     categoryList = categoryList.sort(); 
     for(var i = 0; i < categoryList.length; i++) {
       var item = categoryList[i];
-      var fillListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-fill-options-' + item.replace(/\s+/g, '') + '"></div>';  
-      var heatListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-heat-options-' + item.replace(/\s+/g, '') + '"></div>';  
-      $('#modal-fill-options').append(fillListSectionHtml);  
-      $('#modal-heat-options').append(heatListSectionHtml);   
+      var questionsListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-questions-options-' + item.replace(/\s+/g, '') + '"></div>';  
+      $('#modal-questions-options').append(questionsListSectionHtml);  
     }
     $.each(analysisPlan, function(index, analyzeThis){
       var dataDescription = analyzeThis["Data Description"];
       var variableName = analyzeThis["Variable Name"];
-      var fillListItemHtml = '<a id="fill-question-'+ variableName +'" href="#" onClick="fillQuestionSelect(' +"'"+ variableName +"', this"+ '); return false;">' + dataDescription + "</a><br>";
-      var heatListItemHtml = '<a id="heat-question-'+ variableName +'" href="#" onClick="heatQuestionSelect(' +"'"+ variableName +"', this"+ '); return false;">' + dataDescription + "</a><br>";
-      var fillSelector = "#modal-fill-options-" + analyzeThis["Category"];
-      var heatSelector = "#modal-heat-options-" + analyzeThis["Category"];
-      $(fillSelector).append(fillListItemHtml);
-      $(heatSelector).append(heatListItemHtml);
+      var questionsListItemHtml = '<a class="modal-questions-link" id="modal-question-'+ variableName +'" href="#" onClick="return false;">' + dataDescription + "</a><br>";
+      var questionSelector = "#modal-questions-options-" + analyzeThis["Category"];
+      $(questionSelector).append(questionsListItemHtml);
     });
   buildMunicipalityDropdown();  
   });
 }
+
+
 
 function buildMunicipalityDropdown() {
   // get list of muncipalities from survey data
@@ -188,13 +184,25 @@ function buildMunicipalityDropdown() {
   }
   $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
   $("#loading").fadeOut(300);
+  filterMap();
 }
 
 
 
+function openQuestionsModal(modalType){
+  var modalType = modalType;
+  d3.selectAll('.modal-questions-link')
+  .each(function(d){  
+    var variableName = d3.select(this).attr('id').slice(15);
+    var clickFunction = modalType + "('" + variableName + "', this)";
+    d3.select(this).attr('onClick', clickFunction);
+  });
+  $('#modal-questions').modal('show');
+} 
+
 
 function fillQuestionSelect(variableSelected, listItem){
-  $('#modal-fill').modal('hide');
+  $('#modal-questions').modal('hide');
   $("#legend-fill").empty();
   $("#legend-fill-title").html($(listItem).html());
   var possibleFillAnswers = [];
@@ -225,9 +233,12 @@ function fillQuestionSelect(variableSelected, listItem){
   });
 }
 
+
+
+
 function heatQuestionSelect(variableSelected, listItem){
   map.removeLayer(heatLayer);
-  $('#modal-heat').modal('hide');
+  $('#modal-questions').modal('hide');
   $("#legend-heat").empty();
   $("#legend-heat-title").html($(listItem).html());
   var possibleHeatAnswers = [];
@@ -248,7 +259,6 @@ function heatQuestionSelect(variableSelected, listItem){
 }
 
 function toggleHeat(clicked){
-  console.log(clicked);
   if($(clicked).hasClass("heatMapped") === false){
     d3.selectAll(".legend-heat-option").classed("heatMapped", false);
     $(clicked).addClass("heatMapped");
@@ -261,7 +271,6 @@ function toggleHeat(clicked){
 }
 
 function setHeat(){
-  console.log($(".legend-heat-option.heatMapped").length);
   if($(".legend-heat-option.heatMapped").length == 1){
     // add heat map
     var thisAnswer = $(".legend-heat-option.heatMapped").attr("data-heatanswer");
@@ -278,18 +287,68 @@ function setHeat(){
   }
 }
 
+function filterQuestionSelect(variableSelected, listItem){
+  $('#modal-questions').modal('hide');
+  $("#legend-filters").append('<div>' + $(listItem).html() + '</div>');
+  var possibleFilterAnswers = [];
+  $.each(surveyData, function(index, survey){
+    if($.inArray(survey[variableSelected], possibleFilterAnswers) === -1){
+      possibleFilterAnswers.push(survey[variableSelected]);
+    }
+  });
+  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers 
+  // then trim first 2 characters??? hacky as hell
+  possibleFilterAnswers.sort();
+  $.each(possibleFilterAnswers, function(index, answer){
+    var thisHtml ='<div class="legend-filter-option" onClick="toggleFilter(this)"' +
+      'data-filtervariable="' + variableSelected + '" ' +
+      'data-filteranswer="' + answer + '"><span class="filterColorBox"></span>' + answer + '</div>';
+    $("#legend-filters").append(thisHtml);
+  });
+
+}
+
+function toggleFilter(clicked){
+  $(clicked).toggleClass("filterMapped");
+  filterMap();
+
+}
+
+
+
+
+function uniformMarkerFill(){
+  $("#legend-fill").empty();
+  $("#legend-fill-title").empty();
+  markersGroup.selectAll("circle").attr("fill", "#ed1b2e");
+}
+
+function noHeatMap(){
+  $("#legend-heat").empty();
+  $("#legend-heat-title").empty();
+  map.removeLayer(heatLayer);
+}
+
+function removeAllFilters(){
+  $("#legend-filters").empty();
+  filterMap();
+}
+
+function resetAdmin() {
+  activeMunicipalityCode = "ALL";
+  activeBarangayCode = "ALL";
+  activeMunicipality = "";
+  activeBarangay = "";
+  $('#dropdown-menu-barangay').html('<li class="disabled"><a role="menuitem" href="#">First select a municipality</a></li>');
+  $("#selected-admin-label").html("All surveyed areas");
+  filterMap();
+}
 
 
 
 function municipalitySelect(p2){
   activeMunicipalityCode = p2;
-  activeBarangay = "ALL";
-
-  markersGroup.selectAll("circle").style('display', 'none');
-  markersGroup.selectAll("circle")
-    .filter(function(d) {return d["Mun_Code"] == activeMunicipalityCode})
-    .style('display', 'inline');
-  setHeat();
+  activeBarangayCode = "ALL";
 
   var selector = "#" + p2;
   activeMunicipalityName = $(selector).html();
@@ -299,10 +358,8 @@ function municipalitySelect(p2){
   $('#dropdown-menu-barangay').empty();
   var barangayList = [];
   var barangayAdminLookup = {};
-  shownSurveysCount = 0;
   $.each(surveyData, function(index, survey){
     if(survey["Mun_Code"] === activeMunicipalityCode){
-      shownSurveysCount ++;
       var thisBarangay = survey["barangayname"];
       if($.inArray(thisBarangay, barangayList) === -1){
         barangayList.push(thisBarangay);
@@ -310,7 +367,6 @@ function municipalitySelect(p2){
       }
     }
   });
-  $("#selected-survey-count").html(formatCommas(shownSurveysCount));
   // sort so that they appear in alphabetical order in dropdown
   barangayList = barangayList.sort(); 
   // create item elements in dropdown list   
@@ -320,7 +376,7 @@ function municipalitySelect(p2){
       $('#dropdown-menu-barangay').append(listItemHtml);       
   }
 
-  mapToBounds(); 
+  filterMap(); 
 }
 
 
@@ -329,29 +385,26 @@ function barangaySelect(p3) {
   var selector = "#" + p3;
   activeBarangayName = $(selector).html();
   $("#selected-admin-label").html(activeMunicipalityName + ", "+ activeBarangayName);
-  
-  markersGroup.selectAll("circle").style('display', 'none');
-  markersGroup.selectAll("circle")
-    .filter(function(d) {return d["Bar_Code"] == activeBarangayCode})
-    .style('display', 'inline');
-  setHeat();
 
-  shownSurveysCount = 0;
-  $.each(surveyData, function(index, survey){
-    if(survey["Bar_Code"] === activeBarangayCode){
-      shownSurveysCount ++;
-    }
-  });
-  $("#selected-survey-count").html(formatCommas(shownSurveysCount));
-
-  mapToBounds();
+  filterMap();
 }
 
 
 function mapToBounds(){
-  // build FeatureCollection in order to use d3 to get bounds of points
+  // visible markers FeatureCollection updated inside FilterMap function
+  // get bounds of all visible markers
+  var bounds = d3.geo.bounds(visibleFeatures);
+  // reformat bounds arrays for compatibility with Leaflet and fit map to bounds
+  var padding = {"padding":[0,0]};
+  map.fitBounds([[Number(bounds[1][1]), Number(bounds[1][0])], [Number(bounds[0][1]), Number(bounds[0][0])]], padding);
+}
+
+
+function filterMap(){
+  // d3 can get geo bounds of a FeatureCollection
+  // empty the FeatureCollection to be ready to update it
   visibleFeatures.features = [];
-  //function to take csv to geojson for adding point to FeatureCollection
+  //this function converts from the imported csv data to geojson for adding point to FeatureCollection
   function markerToJSON(input){
     var thisPoint = {
       "type": "Feature",
@@ -366,15 +419,70 @@ function mapToBounds(){
     };
     visibleFeatures.features.push(thisPoint);
   }
-  // add geojson points to FeatureCollection for all visible markers
+
+  var conductedSurveyCount = 0;
+  // hide all markers
+  markersGroup.selectAll("circle").style('display', 'none');
+  // add class to be used for filtering and showing markers in Admin selection
+  // active admin codes are global variables set when the selections are made from admin dropdowns
+  markersGroup.selectAll("circle").each(function(d){
+    d3.select(this).classed({'inAdmin':false, 'inFilters':false});
+    if(d["Mun_Code"] == activeMunicipalityCode || activeMunicipalityCode == "ALL"){
+      if(d["Bar_Code"] == activeBarangayCode || activeBarangayCode == "ALL"){
+        d3.select(this).classed('inAdmin', true);
+        conductedSurveyCount ++;
+      }
+    }
+  });
+  // update HTML on page showing survey count for selected admin area
+  $("#conductedForAreaCount").html(formatCommas(conductedSurveyCount));
+
+  //show only those in selected admin area
+  markersGroup.selectAll("circle")
+    .filter(function(d) { return d3.select(this).classed("inAdmin"); })
+    .style('display', 'inline')
+    // add geojson points to FeatureCollection for all visible markers for mapToBounds (Fit Bounds button)
+    .each(function(d){ markerToJSON(d) });
+  
+  // apply any filters
+  // remove class .filteredOut from all markers and if a marker fails
+  // to test positive for any active filters then add back in the class
+  // .filteredOut markers have fill-opacity set to 0 in custom.css
+  markersGroup.selectAll("circle").classed("filteredOut", false);
+  var activeFilterElements = $(".legend-filter-option.filterMapped");
+  if(activeFilterElements.length > 0){
+    markersGroup.selectAll("circle").each(function(d){
+      var shown = true;
+      $.each(activeFilterElements, function(index, activeElement){
+        var thisAnswer = $(activeElement).attr("data-filteranswer");
+        var thisVariable = $(activeElement).attr("data-filtervariable");
+        if(d[thisVariable] !== thisAnswer){
+          shown = false;
+        }
+      });
+      if(shown == false){
+        d3.select(this).classed("filteredOut", true);
+      }
+    }); 
+  }
+
+  // count the number of markers that are both visible (in Admin selection) 
+  // and also not .filteredOut 
+  var filteredInCount = 0;
   markersGroup.selectAll("circle")
     .filter(function(d) {return this.style.display == 'inline'})
-    .each(function(d){ markerToJSON(d) });
-  // get bounds of all visible markers
-  bounds = d3.geo.bounds(visibleFeatures);
-  // reformat bounds arrays for compatibility with Leaflet and fit map to bounds
-  var padding = {"padding":[0,0]};
-  map.fitBounds([[Number(bounds[1][1]), Number(bounds[1][0])], [Number(bounds[0][1]), Number(bounds[0][0])]], padding);
+    .filter(function(d) {
+      if(d3.select(this).classed('filteredOut') == true){
+        return false
+      } else {
+        return true
+      }
+    })      
+    .each(function(d){ filteredInCount ++; });
+  $("#filteredForAreaCount").html(formatCommas(filteredInCount));
+
+  setHeat();
+
 }
 
 
@@ -390,22 +498,6 @@ function clickedMarker(e){
 }
 
 
-
-function resetAdmin() {
-  activeMunicipalityName = "ALL";
-  activeBarangayName = "ALL";
-  activeMunicipalityCode = "";
-  activeBarangayCode = "";
-  // municipalityGroup.selectAll("path")
-  //   .style({'fill': 'red', 'stroke': "#ffffff"});
-  // barangayGroup.selectAll("path")
-  //   .style('display', 'none');
-  markersGroup.selectAll("circle").style('display', 'inline');
-  mapToBounds("agree_to_participate", "yes");
-  $('#dropdown-menu-barangay').html('<li class="disabled"><a role="menuitem" href="#">First select a municipality</a></li>');
-  $("#selected-admin-label").html("All surveyed areas");
-  $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
-}
 
 // tooltip follows cursor
 $(document).ready(function() {
@@ -434,77 +526,4 @@ $(window).resize(function(){
 
 getSurveyData();
 
-
-
-
-
-
-// function getMunicipalityGeo(){
-// 	d3.json("data/targetmunicipalities.json", function(data) {
-//     municipalityGeoData = data;
-// 		var mappedMunicipalities = municipalityGroup.selectAll("path")
-// 			.data(data.features)
-// 			.enter().append("path")
-// 			.attr("class", "municipalityPolygon")
-// 			.attr("d", path)
-// 			.on("click",municipalityClick)
-// 			.on("mouseover", function(d){ 
-// 				var tooltipText = "<strong>" + d.properties.name_2 + "</strong>";
-// 				$('#tooltip').append(tooltipText);                
-// 			})
-// 			.on("mouseout", function(){ 
-// 				$('#tooltip').empty();        
-// 			});
-// 		function updateMpath(){
-// 			mappedMunicipalities.attr("d", path);
-// 		}
-// 		map.on("viewreset", updateMpath);
-//     getBarangayGeo();
-// 	});
-// }
-
-// function getBarangayGeo(){
-//   d3.json("data/barangays.json", function(data) {
-//     var mappedBarangays = barangayGroup.selectAll("path")
-//       .data(data.features)
-//       .enter().append("path")
-//       .attr("class", "barangayPolygon")
-//       .attr("d", path)
-//       .style("display","none")
-//       .on("click", barangayClick)
-//       .on("mouseover", function(d){ 
-//         var tooltipText = "<strong>" + d.properties.name_3 + "</strong>";
-//         $('#tooltip').append(tooltipText);                
-//       })
-//       .on("mouseout", function(){ 
-//         $('#tooltip').empty();        
-//       });
-//     function updateBpath(){
-//       mappedBarangays.attr("d", path);
-//     }
-//     map.on("viewreset", updateBpath);
-//     buildMunicipalityDropdown();
-//   });
-// }
-
-
-
-
-
-// // on municipality click open modal
-// function municipalityClick(e) {
-//   var thisName = e.properties.name_2;
-//   $('.modal-title').html(thisName);
-//   $('.modal-body').html("<h5>Lorem ipsum</h5><p>Municipal level data could appear here. For example, a graph of percentage complete.");
-//   console.log(e);
-//   $('#modal1').modal();     
-// }
-// // on brgy click open modal
-// function barangayClick(e) {
-//   var thisBrgy = e.properties.name_3;
-//   var thisMunicip = e.properties.name_2;
-//   $('.modal-title').html("Barangay " + thisBrgy + ", " + thisMunicip);
-//   $('.modal-body').html("<h5>Lorem ipsum</h5><p>Barangay level data could appear here. For example, a graph of percentage complete.");
-//   $('#modal1').modal();     
-// }
 
