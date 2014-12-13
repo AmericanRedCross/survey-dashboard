@@ -5,8 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon"/>
 
     <title>TTL Household Dashboard</title>
 
@@ -42,31 +42,16 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<div id="modal-fill" class="modal fade">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 id="modal-fill-title" class="modal-title">Choose question for marker fill:</h4>
-      </div>
-      <div id="modal-fill-options" class="modal-body">
-        
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default btn-xs" data-dismiss="modal">Close</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
 
-<div id="modal-heat" class="modal fade">
+<div id="modal-questions" class="modal fade">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 id="modal-heat-title" class="modal-title">Choose question for heat map options:</h4>
+        <h4 id="modal-questions-title" class="modal-title">Choose question for 
+        <span id="modal-analysis-type"></span>:</h4>
       </div>
-      <div id="modal-heat-options" class="modal-body">
+      <div id="modal-questions-options" class="modal-body">
         
       </div>
       <div class="modal-footer">
@@ -79,60 +64,67 @@
 
 
     <div id="tooltip"></div>
-    <!-- <div id="loading"><img id="loader" src="img/ajax_loader_gray_512.gif" /></div> -->
+    <div id="loading"><img id="loader" src="img/ajax_loader_gray_512.gif" /></div>
     
 
     <div class="container-fluid">     
       <div class="col-sm-8 col-map">
         
-        <button class="btn btn-sm btn-zoom" type="button" onClick="mapToBounds();">
-          <span class="glyphicon glyphicon-zoom-out"></span> Fit bounds
-        </button>
+        
 
         <div id="map"></div>
       </div> <!-- /.col-sm-8 -->
-      <div class="col-sm-4">
+      <div class="col-xs-4">
         <div id="infoWrapper"> 
 
           <br>
 
           <p class="nav-text"> <span id="selected-admin-label">All surveyed areas</span> 
-          <small>(<span id="selected-survey-count">X</span> surveys conducted)</small></p>
-
-
-          Filter by administrative area:<br>
-
-          <button type="button" onClick="resetAdmin();" class="btn btn-default btn-xs">Reset <span class="glyphicon glyphicon-refresh"></span></button>
+          <small>(<span id="conductedForAreaCount">X</span> surveys in area and <span id="filteredForAreaCount">X</span> fit filters)</small></p>
 
           <div class="btn-group">
             <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
               Select a Municipality <span class="caret"></span>
             </button>
-            <ul id="dropdown-menu-municipality" class="dropdown-menu dropdown-menu-right" role="menu"></ul>
+            <ul id="dropdown-menu-municipality" class="dropdown-menu dropdown-menu-left" role="menu"></ul>
           </div>
 
           <div class="btn-group">
             <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
               Select a Barangay <span class="caret"></span>
             </button>
-            <ul id="dropdown-menu-barangay" class="dropdown-menu dropdown-menu-right" role="menu">
+            <ul id="dropdown-menu-barangay" class="dropdown-menu dropdown-menu-left" role="menu">
               <li class="disabled"><a role="menuitem" href="#">First select a municipality</a></li>
             </ul>
           </div>
+          <button class="btn btn-xs btn-default" type="button" onClick="mapToBounds();">
+            <span class="glyphicon glyphicon-search"></span>
+          </button>
+          <button type="button" onClick="resetAdmin();" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>
 
           <hr>
 
-          <button type="button" onClick="$('#modal-fill').modal('show');" class="btn btn-default btn-xs"> <span class="glyphicon glyphicon-tint"></span> &nbsp;Set marker fill</button>
-
-          <div id="legend-fill-title"><i>Please set marker fill</i><br><br></div>
+          <button type="button" onClick="openQuestionsModal('fillQuestionSelect');" class="btn btn-default btn-xs"> <span class="glyphicon glyphicon-tint"></span> &nbsp;Set marker fill</button>
+          <button type="button" onClick="uniformMarkerFill();" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>
+          <div id="legend-fill-title"></div>
           <div id="legend-fill">
           </div>
           <hr>
 
-          <button type="button" onClick="$('#modal-heat').modal('show');" class="btn btn-default btn-xs"> <span class="glyphicon glyphicon-fire"></span> &nbsp;Set heat map</button>
-          <div id="legend-heat-title"><i>Please set heat map</i><br><br></div>
+          <button type="button" onClick="openQuestionsModal('heatQuestionSelect');" class="btn btn-default btn-xs"> <span class="glyphicon glyphicon-fire"></span> &nbsp;Set heat map</button>
+          <button type="button" onClick="noHeatMap();" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>
+          <div id="legend-heat-title"></div>
           <div id="legend-heat">
           </div>
+          <hr>
+
+          <button type="button" onClick="openQuestionsModal('filterQuestionSelect');" class="btn btn-default btn-xs"> <span class="glyphicon glyphicon-filter"></span> &nbsp;Add filter</button>
+          <button type="button" onClick="removeAllFilters();" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>
+          
+          <div id="legend-filters">
+          </div>
+
+
           
 
 
