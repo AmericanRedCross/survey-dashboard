@@ -287,9 +287,16 @@ function setHeat(){
   }
 }
 
+var filterCount = 0;
+
 function filterQuestionSelect(variableSelected, listItem){
+  filterCount ++;
   $('#modal-questions').modal('hide');
-  $("#legend-filters").append('<div>' + $(listItem).html() + '</div>');
+  var filterQuestionId = "F" + filterCount.toString(); 
+  var thisHtml = '<div id="' + filterQuestionId + '" class="filterQuestionBox">' +
+    '<div>' + $(listItem).html() + 
+    ' <button type="button" onClick="removeThisFilter('+ "'" + filterQuestionId + "'" + 
+    ');" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>';
   var possibleFilterAnswers = [];
   $.each(surveyData, function(index, survey){
     if($.inArray(survey[variableSelected], possibleFilterAnswers) === -1){
@@ -300,12 +307,20 @@ function filterQuestionSelect(variableSelected, listItem){
   // then trim first 2 characters??? hacky as hell
   possibleFilterAnswers.sort();
   $.each(possibleFilterAnswers, function(index, answer){
-    var thisHtml ='<div class="legend-filter-option" onClick="toggleFilter(this)"' +
+    thisHtml += '<div class="legend-filter-option" onClick="toggleFilter(this)"' +
       'data-filtervariable="' + variableSelected + '" ' +
-      'data-filteranswer="' + answer + '"><span class="filterColorBox"></span>' + answer + '</div>';
-    $("#legend-filters").append(thisHtml);
+      'data-filteranswer="' + answer + '"><span class="filterColorBox"></span>' + answer +
+      '</div>';
   });
+  thisHtml += '</div>';
+  $("#legend-filters").append(thisHtml);
 
+}
+
+function removeThisFilter(thisID){
+  var removeSelector = "#" + thisID;
+  $(removeSelector).remove();
+  filterMap();
 }
 
 function toggleFilter(clicked){
