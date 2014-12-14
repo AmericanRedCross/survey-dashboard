@@ -2,11 +2,15 @@ TTL Household Dashboard
 ==========
 
 **Install:**
-- git clone https://github.com/AmericanRedCross/TTL_Household_Dashboard.git
-- cd TTL_Household_Dashboard
-- npm install
-- forever start ttl_dashboard.js
-- http://<localhost>:3008/secure
+```shell
+  git clone https://github.com/AmericanRedCross/TTL_Household_Dashboard.git
+  cd TTL_Household_Dashboard
+  npm install
+  forever start ttl_dashboard.js
+```
+
+Open up a browser and go to:
+[http://localhost:3008/secure](http://localhost:3008/secure)
 
 
 **Technology Used:**
