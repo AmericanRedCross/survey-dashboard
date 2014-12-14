@@ -296,7 +296,8 @@ function filterQuestionSelect(variableSelected, listItem){
   var thisHtml = '<div id="' + filterQuestionId + '" class="filterQuestionBox">' +
     '<div>' + $(listItem).html() + 
     ' <button type="button" onClick="removeThisFilter('+ "'" + filterQuestionId + "'" + 
-    ');" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>';
+    ');" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>'+
+    '<div class="filterOptionGroup">';
   var possibleFilterAnswers = [];
   $.each(surveyData, function(index, survey){
     if($.inArray(survey[variableSelected], possibleFilterAnswers) === -1){
@@ -312,7 +313,7 @@ function filterQuestionSelect(variableSelected, listItem){
       'data-filteranswer="' + answer + '"><span class="filterColorBox"></span>' + answer +
       '</div>';
   });
-  thisHtml += '</div>';
+  thisHtml += '</div></div>';
   $("#legend-filters").append(thisHtml);
 
 }
@@ -459,27 +460,63 @@ function filterMap(){
     // add geojson points to FeatureCollection for all visible markers for mapToBounds (Fit Bounds button)
     .each(function(d){ markerToJSON(d) });
   
+  
+  // markersGroup.selectAll("circle").classed("filteredOut", false);
+  // var activeFilterElements = $(".legend-filter-option.filterMapped");
+  // if(activeFilterElements.length > 0){
+  //   markersGroup.selectAll("circle").each(function(d){
+  //     var shown = true;
+  //     $.each(activeFilterElements, function(index, activeElement){
+  //       var thisAnswer = $(activeElement).attr("data-filteranswer");
+  //       var thisVariable = $(activeElement).attr("data-filtervariable");
+  //       if(d[thisVariable] !== thisAnswer){
+  //         shown = false;
+  //       }
+  //     });
+  //     if(shown == false){
+  //       d3.select(this).classed("filteredOut", true);
+  //     }
+  //   }); 
+  // }
+
+
   // apply any filters
-  // remove class .filteredOut from all markers and if a marker fails
-  // to test positive for any active filters then add back in the class
+  // remove class .filteredOut from all markers and
+  // add back in as necessary 
   // .filteredOut markers have fill-opacity set to 0 in custom.css
   markersGroup.selectAll("circle").classed("filteredOut", false);
-  var activeFilterElements = $(".legend-filter-option.filterMapped");
-  if(activeFilterElements.length > 0){
+  // check for at least one active filter option
+  // if none... can skip this section
+  var openFilterGroups = $(".filterOptionGroup");
+  var openGroupCount = openFilterGroups.length;
+  if(openGroupCount > 0){
     markersGroup.selectAll("circle").each(function(d){
-      var shown = true;
-      $.each(activeFilterElements, function(index, activeElement){
-        var thisAnswer = $(activeElement).attr("data-filteranswer");
-        var thisVariable = $(activeElement).attr("data-filtervariable");
-        if(d[thisVariable] !== thisAnswer){
-          shown = false;
+      var filterGroupsPassed = 0;
+      $.each(openFilterGroups, function(groupIndex, filterGroup){
+        var thisGroupActiveOptionCount = 0
+        var theseOptions = $(filterGroup).children();
+        var thisShown = false;
+        $.each(theseOptions, function(optionIndex, filterOption){
+          if($(filterOption).hasClass("filterMapped")){
+            thisGroupActiveOptionCount++;
+            var thisAnswer = $(filterOption).attr("data-filteranswer");
+            var thisVariable = $(filterOption).attr("data-filtervariable");
+            if(d[thisVariable] == thisAnswer){
+              thisShown = true;
+            }
+          }
+        });
+        if(thisShown == true || thisGroupActiveOptionCount == 0){
+          filterGroupsPassed ++;
         }
       });
-      if(shown == false){
+      if(filterGroupsPassed !== openGroupCount){
         d3.select(this).classed("filteredOut", true);
       }
     }); 
   }
+
+  
 
   // count the number of markers that are both visible (in Admin selection) 
   // and also not .filteredOut 
@@ -537,6 +574,16 @@ $(window).resize(function(){
     $("#map").height(windowHeight);
     $("#infoWrapper").height(windowHeight);
 })
+
+function filterexplanation(){
+  var filterAlert = "Selecting answers within a question will show markers"+
+    " that meet at least one. For example, selecting both male and female for 'Sex of head of household'" +
+    " will show all markers. An example use would be selecting none, primary, and elementary for 'Highest Level of Education'"+
+    " in order to view all households with less than high school education. HOWEVER, while answers"+
+    " within a question are used in an *OR* query, seperate questions are used in an *AND* query."+
+    " For example... (Sex of head = female) AND [(highest lvl of edu = none) OR (highest lvl of edu = elementary) or (highest lvl of edu = primary)].";
+  window.alert(filterAlert);
+}
 
 
 getSurveyData();
