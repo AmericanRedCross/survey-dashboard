@@ -2,6 +2,7 @@
 ###################
 userauth.js
 node_modules
+bower_components
 
 # Compiled source #
 ###################
