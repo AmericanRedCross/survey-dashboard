@@ -8,6 +8,8 @@ TTL Household Dashboard
   npm install
   forever start ttl_dashboard.js
 ```
+edit userauth.js.example
+save as userauth.js
 
 Open up a browser and go to:
 [http://localhost:3008/secure](http://localhost:3008/secure)
