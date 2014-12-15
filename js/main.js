@@ -581,7 +581,7 @@ function filterexplanation(){
     " will show all markers. An example use would be selecting none, primary, and elementary for 'Highest Level of Education'"+
     " in order to view all households with less than high school education. HOWEVER, while answers"+
     " within a question are used in an *OR* query, seperate questions are used in an *AND* query."+
-    " For example... (Sex of head = female) AND [(highest lvl of edu = none) OR (highest lvl of edu = elementary) or (highest lvl of edu = primary)].";
+    " For example... (Sex of head = female) AND [(highest lvl of edu = none) OR (highest lvl of edu = elementary) OR (highest lvl of edu = primary)].";
   window.alert(filterAlert);
 }
 
