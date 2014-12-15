@@ -52,17 +52,19 @@ var mapAttribution = '<a href="https://www.mapbox.com/" target="_blank">Mapbox</
 var HOTAttribution = 'Base map data &copy; <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/" target="_blank">CC-BY-SA</a> | Map style by <a href="http://hot.openstreetmap.org" target="_blank">H.O.T.</a> | &copy; <a href="http://redcross.org" title="Red Cross" target="_blank">Red Cross</a> 2014, CC-BY | <a title="Disclaimer" onClick="showDisclaimer();">Disclaimer</a>';
 
 var mapboxStreetsUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.hmki3gmj/{z}/{x}/{y}.png',
-	mapboxTerrainUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.hc5olfpa/{z}/{x}/{y}.png',
-	greyscaleUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.i4d2d077/{z}/{x}/{y}.png',
-	hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+  mapboxTerrainUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.hc5olfpa/{z}/{x}/{y}.png',
+  greyscaleUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.i4d2d077/{z}/{x}/{y}.png',
+  hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  mapboxSatUrl = 'http://{s}.tiles.mapbox.com/v4/americanredcross.inlanejo/{z}/{x}/{y}.png';
 var mapboxStreets = new L.TileLayer(mapboxStreetsUrl, {attribution: mapAttribution}),
-	mapboxTerrain = new L.TileLayer(mapboxTerrainUrl, {attribution: mapAttribution}),
-	greyscale = new L.TileLayer(greyscaleUrl, {attribution: mapAttribution}),
-	hot = new L.TileLayer(hotUrl, {attribution: HOTAttribution});
+  mapboxTerrain = new L.TileLayer(mapboxTerrainUrl, {attribution: mapAttribution}),
+  greyscale = new L.TileLayer(greyscaleUrl, {attribution: mapAttribution}),
+  hot = new L.TileLayer(hotUrl, {attribution: HOTAttribution}),
+  mapboxSat = new L.TileLayer(mapboxSatUrl, {attribution: mapAttribution});
 
 var map = new L.Map("map", {
-	center: [11.1198, 124.8940], 
-	zoom: 10, 
+	center: [11.1198, 124.8940],
+	zoom: 10,
 	minZoom: 9,
 	zoomControl: false,
   // scrollWheelZoom: false,
@@ -88,7 +90,7 @@ var zoomControl = L.control.zoom({
 });
 map.addControl(zoomControl);
 
-// Add our loading control in the same position and pass the 
+// Add our loading control in the same position and pass the
 // zoom control to attach to it
 var loadingControl = L.Control.loading({
     position: 'topleft',
@@ -98,10 +100,10 @@ map.addControl(loadingControl);
 
 
 
-// initialize the SVG layer for D3 drawn survey points 
-map._initPathRoot()    
+// initialize the SVG layer for D3 drawn survey points
+map._initPathRoot()
 
-// pick up the SVG from the map object 
+// pick up the SVG from the map object
 var svg = d3.select("#map").select("svg");
 // var municipalityGroup = svg.append('g').attr("id", "municipalities");
 // var barangayGroup = svg.append('g').attr("id", "barangays");
@@ -110,7 +112,7 @@ var markersGroup = svg.append('g').attr("id", "markers");
 
 
 function getSurveyData(){
-	d3.csv("data/Alang_Alang_GIS.csv", function(data){ 
+	d3.csv("data/Alang_Alang_GIS.csv", function(data){
 		surveyData = data;
     // add a LatLng object to each item in the dataset
     surveyData.forEach(function(d) {
@@ -130,7 +132,7 @@ function getSurveyData(){
       mappedMarkers.attr("cy",function(d) { return map.latLngToLayerPoint(d.LatLng).y});
     }
     map.on("viewreset", updatemarker);
-    updatemarker(); 
+    updatemarker();
     setupSurveyAnalysis();
   });
 }
@@ -144,11 +146,11 @@ function setupSurveyAnalysis(){
         categoryList.push(analyzeThis["Category"]);
       }
     });
-    categoryList = categoryList.sort(); 
+    categoryList = categoryList.sort();
     for(var i = 0; i < categoryList.length; i++) {
       var item = categoryList[i];
-      var questionsListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-questions-options-' + item.replace(/\s+/g, '') + '"></div>';  
-      $('#modal-questions-options').append(questionsListSectionHtml);  
+      var questionsListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-questions-options-' + item.replace(/\s+/g, '') + '"></div>';
+      $('#modal-questions-options').append(questionsListSectionHtml);
     }
     $.each(analysisPlan, function(index, analyzeThis){
       var dataDescription = analyzeThis["Data Description"];
@@ -157,7 +159,7 @@ function setupSurveyAnalysis(){
       var questionSelector = "#modal-questions-options-" + analyzeThis["Category"];
       $(questionSelector).append(questionsListItemHtml);
     });
-  buildMunicipalityDropdown();  
+  buildMunicipalityDropdown();
   });
 }
 
@@ -175,12 +177,12 @@ function buildMunicipalityDropdown() {
     }
   });
   // sort so that the admins appear in alphabetical order in dropdown
-  municipalityList = municipalityList.sort(); 
-  // create item elements in dropdown list   
+  municipalityList = municipalityList.sort();
+  // create item elements in dropdown list
   for(var i = 0; i < municipalityList.length; i++) {
       var item = municipalityList[i];
       var listItemHtml = '<li><a id="'+ municipalityAdminLookup[item] +'" href="#" onClick="municipalitySelect(' +"'"+ municipalityAdminLookup[item] +"'"+ '); return false;">' + item + "</a></li>"
-      $('#dropdown-menu-municipality').append(listItemHtml);       
+      $('#dropdown-menu-municipality').append(listItemHtml);
   }
   $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
   $("#loading").fadeOut(300);
@@ -192,13 +194,13 @@ function buildMunicipalityDropdown() {
 function openQuestionsModal(modalType){
   var modalType = modalType;
   d3.selectAll('.modal-questions-link')
-  .each(function(d){  
+  .each(function(d){
     var variableName = d3.select(this).attr('id').slice(15);
     var clickFunction = modalType + "('" + variableName + "', this)";
     d3.select(this).attr('onClick', clickFunction);
   });
   $('#modal-questions').modal('show');
-} 
+}
 
 
 function fillQuestionSelect(variableSelected, listItem){
@@ -211,7 +213,7 @@ function fillQuestionSelect(variableSelected, listItem){
       possibleFillAnswers.push(survey[variableSelected]);
     }
   });
-  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers 
+  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers
   // then trim first 2 characters??? hacky as hell
   possibleFillAnswers.sort();
   $.each(possibleFillAnswers, function(index, answer){
@@ -223,7 +225,7 @@ function fillQuestionSelect(variableSelected, listItem){
     return color12[i];
   });
   // color markers on map based on legend colors
-  $(possibleFillAnswers).each(function(index, answer){  
+  $(possibleFillAnswers).each(function(index, answer){
     var filtered = markersGroup.selectAll("circle")
       .filter(function(d) { return d[variableSelected] === answer });
     var colorSearch = "[data-fillanswer='" + answer + "']";
@@ -247,7 +249,7 @@ function heatQuestionSelect(variableSelected, listItem){
       possibleHeatAnswers.push(survey[variableSelected]);
     }
   });
-  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers 
+  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers
   // then trim first 2 characters??? hacky as hell
   possibleHeatAnswers.sort();
   $.each(possibleHeatAnswers, function(index, answer){
@@ -263,7 +265,7 @@ function toggleHeat(clicked){
     d3.selectAll(".legend-heat-option").classed("heatMapped", false);
     $(clicked).addClass("heatMapped");
     setHeat();
-    
+
   } else {
     d3.selectAll(".legend-heat-option").classed("heatMapped", false);
     setHeat();
@@ -292,10 +294,10 @@ var filterCount = 0;
 function filterQuestionSelect(variableSelected, listItem){
   filterCount ++;
   $('#modal-questions').modal('hide');
-  var filterQuestionId = "F" + filterCount.toString(); 
+  var filterQuestionId = "F" + filterCount.toString();
   var thisHtml = '<div id="' + filterQuestionId + '" class="filterQuestionBox">' +
-    '<div>' + $(listItem).html() + 
-    ' <button type="button" onClick="removeThisFilter('+ "'" + filterQuestionId + "'" + 
+    '<div>' + $(listItem).html() +
+    ' <button type="button" onClick="removeThisFilter('+ "'" + filterQuestionId + "'" +
     ');" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></button>'+
     '<div class="filterOptionGroup">';
   var possibleFilterAnswers = [];
@@ -304,7 +306,7 @@ function filterQuestionSelect(variableSelected, listItem){
       possibleFilterAnswers.push(survey[variableSelected]);
     }
   });
-  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers 
+  // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers
   // then trim first 2 characters??? hacky as hell
   possibleFilterAnswers.sort();
   $.each(possibleFilterAnswers, function(index, answer){
@@ -369,7 +371,7 @@ function municipalitySelect(p2){
   var selector = "#" + p2;
   activeMunicipalityName = $(selector).html();
   $("#selected-admin-label").html(activeMunicipalityName);
-  
+
   //build barangay dropdown
   $('#dropdown-menu-barangay').empty();
   var barangayList = [];
@@ -384,15 +386,15 @@ function municipalitySelect(p2){
     }
   });
   // sort so that they appear in alphabetical order in dropdown
-  barangayList = barangayList.sort(); 
-  // create item elements in dropdown list   
+  barangayList = barangayList.sort();
+  // create item elements in dropdown list
   for(var i = 0; i < barangayList.length; i++) {
       var item = barangayList[i];
       var listItemHtml = '<li><a id="'+ barangayAdminLookup[item] +'" href="#" onClick="barangaySelect(' +"'"+ barangayAdminLookup[item] +"'"+ '); return false;">' + item + "</a></li>";
-      $('#dropdown-menu-barangay').append(listItemHtml);       
+      $('#dropdown-menu-barangay').append(listItemHtml);
   }
 
-  filterMap(); 
+  filterMap();
 }
 
 
@@ -459,8 +461,8 @@ function filterMap(){
     .style('display', 'inline')
     // add geojson points to FeatureCollection for all visible markers for mapToBounds (Fit Bounds button)
     .each(function(d){ markerToJSON(d) });
-  
-  
+
+
   // markersGroup.selectAll("circle").classed("filteredOut", false);
   // var activeFilterElements = $(".legend-filter-option.filterMapped");
   // if(activeFilterElements.length > 0){
@@ -476,13 +478,13 @@ function filterMap(){
   //     if(shown == false){
   //       d3.select(this).classed("filteredOut", true);
   //     }
-  //   }); 
+  //   });
   // }
 
 
   // apply any filters
   // remove class .filteredOut from all markers and
-  // add back in as necessary 
+  // add back in as necessary
   // .filteredOut markers have fill-opacity set to 0 in custom.css
   markersGroup.selectAll("circle").classed("filteredOut", false);
   // check for at least one active filter option
@@ -513,13 +515,13 @@ function filterMap(){
       if(filterGroupsPassed !== openGroupCount){
         d3.select(this).classed("filteredOut", true);
       }
-    }); 
+    });
   }
 
-  
 
-  // count the number of markers that are both visible (in Admin selection) 
-  // and also not .filteredOut 
+
+  // count the number of markers that are both visible (in Admin selection)
+  // and also not .filteredOut
   var filteredInCount = 0;
   markersGroup.selectAll("circle")
     .filter(function(d) {return this.style.display == 'inline'})
@@ -529,7 +531,7 @@ function filterMap(){
       } else {
         return true
       }
-    })      
+    })
     .each(function(d){ filteredInCount ++; });
   $("#filteredForAreaCount").html(formatCommas(filteredInCount));
 
@@ -546,20 +548,20 @@ function clickedMarker(e){
   // -this- is the svg circle element
   $('#modal-ben-title').html("Beneficiary!");
   $('#modal-ben-body').html("<strong><u>" + e.enumerator + "</u></strong> wasn't the enumerator. Data currently scrambled while working progress is public. Nothing else coded to appear here yet.");
-  $('#modal-ben').modal();   
+  $('#modal-ben').modal();
 }
 
 
 
 // tooltip follows cursor
 $(document).ready(function() {
-    $('#map').mouseover(function(e) {        
+    $('#map').mouseover(function(e) {
         //Set the X and Y axis of the tooltip
         $('#tooltip').css('top', e.pageY + 10 );
-        $('#tooltip').css('left', e.pageX + 20 );         
-    }).mousemove(function(e) {    
+        $('#tooltip').css('left', e.pageX + 20 );
+    }).mousemove(function(e) {
         //Keep changing the X and Y axis for the tooltip, thus, the tooltip move along with the mouse
-        $("#tooltip").css({top:(e.pageY+15)+"px",left:(e.pageX+20)+"px"});        
+        $("#tooltip").css({top:(e.pageY+15)+"px",left:(e.pageX+20)+"px"});
     });
 });
 
@@ -569,7 +571,7 @@ function showDisclaimer() {
 }
 
 // on window resize
-$(window).resize(function(){    
+$(window).resize(function(){
     windowHeight = $(window).height();
     $("#map").height(windowHeight);
     $("#infoWrapper").height(windowHeight);
@@ -587,5 +589,3 @@ function filterexplanation(){
 
 
 getSurveyData();
-
-
