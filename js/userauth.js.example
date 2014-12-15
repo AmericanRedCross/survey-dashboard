@@ -1,0 +1,7 @@
+//userauth.js.example is not part of the repository.
+//this file must be manually put on the server.
+
+users = [
+    { id: 1, username: 'user1', password: 'password'}
+  , { id: 2, username: 'user2', password: 'password'}
+];
