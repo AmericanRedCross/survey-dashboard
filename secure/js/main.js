@@ -203,11 +203,16 @@ function openQuestionsModal(modalType){
 }
 
 
+//global variables
+var possibleFillAnswers = [];
+var activeFilterVariable = "";
+
 function fillQuestionSelect(variableSelected, listItem){
+  activeFilterVariable = variableSelected;
   $('#modal-questions').modal('hide');
   $("#legend-fill").empty();
   $("#legend-fill-title").html($(listItem).html());
-  var possibleFillAnswers = [];
+  possibleFillAnswers = [];
   $.each(surveyData, function(index, survey){
     if($.inArray(survey[variableSelected], possibleFillAnswers) === -1){
       possibleFillAnswers.push(survey[variableSelected]);
@@ -216,18 +221,55 @@ function fillQuestionSelect(variableSelected, listItem){
   // ugh, recode things so first 2 characters are 0-, 1-, 2-... so can sort possible answers
   // then trim first 2 characters??? hacky as hell
   possibleFillAnswers.sort();
+  var selectorList = [];
   $.each(possibleFillAnswers, function(index, answer){
-    var thisHtml ='<div data-fillanswer="' + answer + '"><span class="fillColorBox"></span>' + answer + '</div>';
+    var selector = "colorPicker" + index;
+    selectorList.push(selector);
+    var thisHtml ='<div data-fillanswer="' + answer + '"><span id="' + selector +
+      '" class="fillColorBox clickable"></span>' + answer + '</div>';
     $("#legend-fill").append(thisHtml);
   });
   // color legend
   d3.selectAll("#legend-fill span").style("background-color", function(d, i) {
     return color12[i];
   });
+
+
+  // add colorPicker to each of the fillColorBox 
+  $.each(selectorList, function(index, colorBox){
+    var formattedSelector = "#" + colorBox;
+    var presetColor = d3.select(formattedSelector).style("background-color");
+    $(formattedSelector).spectrum({
+      showPaletteOnly: true,
+      showPalette:true,
+      hideAfterPaletteSelect:true,
+      color: presetColor,
+      change: function(color) {
+        d3.select(this).style("background-color", color);
+        colorMarkersFromLegend();
+      },
+      // palette includes the color12 used in initial setting of marker color
+      // plus additional colors, here it needs to be formatted as seperate arrays
+      // for the different rows, otherwise would use the same variable for both
+      palette: [
+        ["#a6cee3","#1f78b4","#b2df8a","#33a02c"],
+        ["#fb9a99","#e31a1c","#fdbf6f","#ff7f00"],
+        ["#cab2d6","#6a3d9a","#ffff99","#b15928"],
+        ["#8dd3c7","#ffffb3","#bebada","#fb8072"],
+        ["#80b1d3","#fdb462","#b3de69","#fccde5"],
+        ["#bc80bd","#ccebc5","#ffed6f","#ffffff"],
+        ["#d9d9d9","#969696","#525252","#000000"] 
+      ]
+    });
+  });
+  colorMarkersFromLegend();
+}
+
+function colorMarkersFromLegend(){
   // color markers on map based on legend colors
   $(possibleFillAnswers).each(function(index, answer){
     var filtered = markersGroup.selectAll("circle")
-      .filter(function(d) { return d[variableSelected] === answer });
+      .filter(function(d) { return d[activeFilterVariable] === answer });
     var colorSearch = "[data-fillanswer='" + answer + "']";
     var color = $(colorSearch).children().css("background-color");
     var colorHex = d3.rgb(color).toString();
@@ -235,7 +277,9 @@ function fillQuestionSelect(variableSelected, listItem){
   });
 }
 
-
+function setLegendColor(){
+  console.log("now it gets interesting");
+}
 
 
 function heatQuestionSelect(variableSelected, listItem){
@@ -461,25 +505,6 @@ function filterMap(){
     .style('display', 'inline')
     // add geojson points to FeatureCollection for all visible markers for mapToBounds (Fit Bounds button)
     .each(function(d){ markerToJSON(d) });
-
-
-  // markersGroup.selectAll("circle").classed("filteredOut", false);
-  // var activeFilterElements = $(".legend-filter-option.filterMapped");
-  // if(activeFilterElements.length > 0){
-  //   markersGroup.selectAll("circle").each(function(d){
-  //     var shown = true;
-  //     $.each(activeFilterElements, function(index, activeElement){
-  //       var thisAnswer = $(activeElement).attr("data-filteranswer");
-  //       var thisVariable = $(activeElement).attr("data-filtervariable");
-  //       if(d[thisVariable] !== thisAnswer){
-  //         shown = false;
-  //       }
-  //     });
-  //     if(shown == false){
-  //       d3.select(this).classed("filteredOut", true);
-  //     }
-  //   });
-  // }
 
 
   // apply any filters

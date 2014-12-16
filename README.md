@@ -21,3 +21,4 @@ Open up a browser and go to:
 - [jQuery](https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js) v1.11.1
 - [Leaflet.js](http://leafletjs.com/) v0.7.3
 - [Leaflet.heat](https://github.com/Leaflet/Leaflet.heat) v0.1.2
+- [Spectrum colorpicker](https://github.com/bgrins/spectrum) v1.6.0
