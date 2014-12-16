@@ -112,7 +112,7 @@ var markersGroup = svg.append('g').attr("id", "markers");
 
 
 function getSurveyData(){
-	d3.csv("data/Alang_Alang_GIS.csv", function(data){
+	d3.csv("data/SurveyData.csv", function(data){
 		surveyData = data;
     // add a LatLng object to each item in the dataset
     surveyData.forEach(function(d) {
@@ -121,7 +121,7 @@ function getSurveyData(){
     // add a circle to the svg markers group for each survey point
     var mappedMarkers = markersGroup.selectAll("circle")
       .data(surveyData)
-      .enter().append("circle").attr("r", 4).attr('stroke','black')
+      .enter().append("circle").attr("r", 4).attr('stroke','#222222')
       .attr("fill", "#ed1b2e")
       .style('display','inline')
       .attr('class','mappedMarkers')
@@ -540,14 +540,29 @@ function filterMap(){
 }
 
 
+function toggleMarkerStroke(x){
+  $(x).toggleClass("stroke-shown");
+  if($(x).hasClass("stroke-shown") === false){
+    markersGroup.selectAll("circle").attr('stroke','none');
+    $(x).children().removeClass("glyphicon-eye-open");
+    $(x).children().addClass("glyphicon-eye-close");  
+  } else {
+    markersGroup.selectAll("circle").attr('stroke','#222222');
+    $(x).children().removeClass("glyphicon-eye-close");
+    $(x).children().addClass("glyphicon-eye-open");
+  }
+}
+
+
+
 
 
 
 function clickedMarker(e){
   // -d- is the data object
   // -this- is the svg circle element
-  $('#modal-ben-title').html("Beneficiary!");
-  $('#modal-ben-body').html("<strong><u>" + e.enumerator + "</u></strong> wasn't the enumerator. Data currently scrambled while working progress is public. Nothing else coded to appear here yet.");
+  $('#modal-ben-title').html("Survey Point!");
+  $('#modal-ben-body').html("<strong><u>" + e.enumerator + "</u></strong> was the enumerator. Nothing else coded to appear here yet.");
   $('#modal-ben').modal();
 }
 
@@ -583,7 +598,7 @@ function filterexplanation(){
     " will show all markers. An example use would be selecting none, primary, and elementary for 'Highest Level of Education'"+
     " in order to view all households with less than high school education. HOWEVER, while answers"+
     " within a question are used in an *OR* query, seperate questions are used in an *AND* query."+
-    " For example... (Sex of head = female) AND [(highest lvl of edu = none) OR (highest lvl of edu = elementary) or (highest lvl of edu = primary)].";
+    " For example... (Sex of head = female) AND [(highest lvl of edu = none) OR (highest lvl of edu = elementary) OR (highest lvl of edu = primary)].";
   window.alert(filterAlert);
 }
 
