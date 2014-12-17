@@ -135,7 +135,14 @@ function getSurveyData(){
     map.on("viewreset", updatemarker);
     updatemarker();
     setupSurveyAnalysis();
-  });
+  }).on("progress", function(event){
+        //update progress bar
+        if (d3.event.lengthComputable) {
+          var percentComplete = Math.round(d3.event.loaded * 100 / d3.event.total);
+          $('.progress-bar').css("width", percentComplete+'%').attr('aria-valuenow', percentComplete);
+          console.log(percentComplete);
+       }
+    });
 }
 
 function setupSurveyAnalysis(){
@@ -186,7 +193,7 @@ function buildMunicipalityDropdown() {
       $('#dropdown-menu-municipality').append(listItemHtml);
   }
   $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
-  $("#loading").fadeOut(300);
+  // $("#loading").fadeOut(300);
   filterMap();
 }
 

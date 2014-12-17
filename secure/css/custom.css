@@ -74,15 +74,31 @@ hr{
 .btn:active{
     outline: 0 !important;
 }
-#loading{
-    position: absolute;
-    z-index: 99999;
-    width: 100%;
+#loading-wrapper{
+    position:absolute;
+    left:0;
+    right:0;
     text-align: center;
+    z-index: 99999;
 }
 #loader{
-    height: 280px;
-    margin-top: 10px;
+    width: 150px;
+    margin-bottom: 10px;
+}
+.progress{
+    width: 150px;
+    margin: 0px auto;
+}
+.progress-bar{
+    background-color: #c6c7c8;
+}
+#loading-progress{
+    margin:30px auto;
+    width: 180px;
+    border-radius: 4px;
+    background: #f5f5f5;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    padding: 15px 0;
 }
 #tooltip{
     font-size: 14px;
