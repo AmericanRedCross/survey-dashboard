@@ -55,12 +55,12 @@ var mapboxStreetsUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.hmki3gmj
   mapboxTerrainUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.hc5olfpa/{z}/{x}/{y}.png',
   greyscaleUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.i4d2d077/{z}/{x}/{y}.png',
   hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-  mapboxSatUrl = 'http://{s}.tiles.mapbox.com/v4/americanredcross.inlanejo/{z}/{x}/{y}.png';
-var mapboxStreets = new L.TileLayer(mapboxStreetsUrl, {attribution: mapAttribution}),
-  mapboxTerrain = new L.TileLayer(mapboxTerrainUrl, {attribution: mapAttribution}),
-  greyscale = new L.TileLayer(greyscaleUrl, {attribution: mapAttribution}),
-  hot = new L.TileLayer(hotUrl, {attribution: HOTAttribution}),
-  mapboxSat = new L.TileLayer(mapboxSatUrl, {attribution: mapAttribution});
+  mapboxSatUrl = 'http://{s}.tiles.mapbox.com/v3/americanredcross.inlanejo/{z}/{x}/{y}.png';
+var mapboxStreets = new L.TileLayer(mapboxStreetsUrl, {attribution: mapAttribution, maxZoom: 20}),
+  mapboxTerrain = new L.TileLayer(mapboxTerrainUrl, {attribution: mapAttribution, maxZoom: 20}),
+  greyscale = new L.TileLayer(greyscaleUrl, {attribution: mapAttribution, maxZoom: 20}),
+  hot = new L.TileLayer(hotUrl, {attribution: HOTAttribution, maxZoom: 20}),
+  mapboxSat = new L.TileLayer(mapboxSatUrl, {attribution: mapAttribution, maxZoom: 17});
 
 var map = new L.Map("map", {
 	center: [11.1198, 124.8940],
@@ -79,7 +79,8 @@ var baseMaps = {
 	"Grey": greyscale,
 	"Streets": mapboxStreets,
 	"Terrain": mapboxTerrain,
-	"HOT": hot
+	"HOT": hot,
+  "Mapbox satellite": mapboxSat
 };
 
 L.control.layers(baseMaps).addTo(map);
@@ -134,6 +135,15 @@ function getSurveyData(){
     map.on("viewreset", updatemarker);
     updatemarker();
     setupSurveyAnalysis();
+  }).on("progress", function(event){
+    //update progress bar
+    if (d3.event.lengthComputable) {
+      var percentComplete = Math.round(d3.event.loaded * 100 / d3.event.total);
+      $('.progress-bar').css("width", percentComplete+'%').attr('aria-valuenow', percentComplete);
+      if(percentComplete == 100){
+        $("#loading-wrapper").fadeOut(500);
+      }
+    }
   });
 }
 
@@ -185,7 +195,7 @@ function buildMunicipalityDropdown() {
       $('#dropdown-menu-municipality').append(listItemHtml);
   }
   $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
-  $("#loading").fadeOut(300);
+  
   filterMap();
 }
 
