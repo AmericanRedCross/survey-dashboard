@@ -4,6 +4,16 @@ body{
     height: 100%;
     margin: 0;
 }
+
+/* the following is hacky as hell to make the 
+darkened backdrop taller than the window height*/
+.modal-backdrop{
+    height:1000%;
+}
+.btn{
+    margin-top:1px;
+}
+
 #infoWrapper{
     overflow: auto;
 }

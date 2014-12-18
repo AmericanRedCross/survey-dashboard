@@ -14,6 +14,8 @@ var visibleFeatures = {
  	"features": []
 };
 
+var tempForMarkerModal = ["municipalityname","Mun_Code","barangayname","Bar_Code","hh_id","hh_head_last","hh_head_first","hh_head_middle","hh_head_suffix","hh_sex","Femaleheadhh","ageyear","who_is_respondent","headhousemarital","livelihoods_bene","shelterbeneficaries","HighestLevel","electricity_connectionR","mosquito_netsR","income_preR","income_postR","incomechange","WorkPaidLastMonthR","WorkUnPaidLastMonthR","farmlandtotal","post_yolanda_main_income_sourceR","TotalNumberIncomeSourcesEmploy","NumberSourcesAll","ChangeIncome","hh_debt","hh_bank_accountR","savings_yeswithoutR","AssetChange","have_a_houseR","currently_living_in","material_construction","why_move_to_location","LocationNoBuildR","land_ownershipr","proof_ownership","house_ownershipr","agreement_land","DamageIndex","damage_posts","damage_roof","damage_walls","damage_others","damage_toilets","shelterbeneficaries.1","totalhectares","hectares1R","agreement_house","occupy_land_yearCat","TotalHouseholdMembers","income_postR.1","AttenWalk","AttenSee","AttenHear","AttenRC","AttenSC","AttenCom","singleHHR","U18HHR","ChildU5R","FiveHHR","attentionR","Over60R","IncomeR","More7R","More10R","VulnerableIndex","water_table","sanitation_ownership","in_or_out","type_of_toilet","septic_tank","ServiceWaterCat","service_water","drinking_water","DrinkWaterCat","handwashing_access","toilet_access","GPS_latitude","GPS_longitude"];
+
 
 var color12 = [
   "#a6cee3",
@@ -30,9 +32,9 @@ var color12 = [
   "#b15928"
 ];
 
-// comma seperator for thousands
+// formatting
 var formatCommas = d3.format(",");
-
+var formatPerc = d3.format(".0%");
 
 
 function projectPoint(x, y) {
@@ -236,11 +238,13 @@ function fillQuestionSelect(variableSelected, listItem){
     var selector = "colorPicker" + index;
     selectorList.push(selector);
     var thisHtml ='<div data-fillanswer="' + answer + '"><span id="' + selector +
-      '" class="fillColorBox clickable"></span>' + answer + '</div>';
+      '" class="fillColorBox clickable"></span>' + answer + 
+      ' (<span class="answerCount" data-countanswer="'+ answer +'" data-countvariable="'+ variableSelected +'">X</span>)'+
+      '</div>';
     $("#legend-fill").append(thisHtml);
   });
   // color legend
-  d3.selectAll("#legend-fill span").style("background-color", function(d, i) {
+  d3.selectAll("#legend-fill .fillColorBox").style("background-color", function(d, i) {
     return color12[i];
   });
 
@@ -281,10 +285,11 @@ function colorMarkersFromLegend(){
     var filtered = markersGroup.selectAll("circle")
       .filter(function(d) { return d[activeFilterVariable] === answer });
     var colorSearch = "[data-fillanswer='" + answer + "']";
-    var color = $(colorSearch).children().css("background-color");
+    var color = $(colorSearch).children(".fillColorBox").css("background-color");
     var colorHex = d3.rgb(color).toString();
     filtered.attr("fill", colorHex);
   });
+  getCounts();
 }
 
 function setLegendColor(){
@@ -570,7 +575,34 @@ function filterMap(){
     .each(function(d){ filteredInCount ++; });
   $("#filteredForAreaCount").html(formatCommas(filteredInCount));
 
+  getCounts();
   setHeat();
+
+}
+
+function getCounts(){
+  d3.selectAll(".answerCount").each(function(d){
+    var thisCount = 0;
+    var visibleCount = 0;
+    var answer = d3.select(this).attr("data-countanswer");
+    var variable = d3.select(this).attr("data-countvariable");
+    markersGroup.selectAll("circle")
+      .filter(function(d) {return this.style.display == 'inline'})
+      .filter(function(d) {
+        if(d3.select(this).classed('filteredOut') == true){
+          return false
+        } else {
+          return true
+        }
+      }).each(function(d){ visibleCount ++; })
+      .filter(function(d) {return d[variable] == answer})
+      .each(function(d){ thisCount ++; });
+    var thisHtml = formatCommas(thisCount.toString()) + " - " + formatPerc(thisCount / visibleCount);
+    d3.select(this).html(thisHtml);
+
+  });
+
+// <span class="answercount" data-countanswer="___" data-countvariable="_____"> X </span>
 
 }
 
@@ -594,10 +626,15 @@ function toggleMarkerStroke(x){
 
 
 function clickedMarker(e){
-  // -d- is the data object
+  // -e- is the data object
   // -this- is the svg circle element
-  $('#modal-ben-title').html("Survey Point!");
-  $('#modal-ben-body').html("<strong><u>" + e.enumerator + "</u></strong> was the enumerator. Nothing else coded to appear here yet.");
+  var modalHtml = "";
+  $.each(tempForMarkerModal, function(index, item){
+    modalHtml += "<strong>"+item+":</strong> "+e[item]+"<br>";
+  });
+
+  $('#modal-ben-title').html(e.hh_head_first + " " + e.hh_head_last);
+  $('#modal-ben-body').html(modalHtml);
   $('#modal-ben').modal();
 }
 
