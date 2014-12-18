@@ -32,9 +32,9 @@ var color12 = [
   "#b15928"
 ];
 
-// comma seperator for thousands
+// formatting
 var formatCommas = d3.format(",");
-
+var formatPerc = d3.format(".0%");
 
 
 function projectPoint(x, y) {
@@ -238,11 +238,13 @@ function fillQuestionSelect(variableSelected, listItem){
     var selector = "colorPicker" + index;
     selectorList.push(selector);
     var thisHtml ='<div data-fillanswer="' + answer + '"><span id="' + selector +
-      '" class="fillColorBox clickable"></span>' + answer + '</div>';
+      '" class="fillColorBox clickable"></span>' + answer + 
+      ' (<span class="answerCount" data-countanswer="'+ answer +'" data-countvariable="'+ variableSelected +'">X</span>)'+
+      '</div>';
     $("#legend-fill").append(thisHtml);
   });
   // color legend
-  d3.selectAll("#legend-fill span").style("background-color", function(d, i) {
+  d3.selectAll("#legend-fill .fillColorBox").style("background-color", function(d, i) {
     return color12[i];
   });
 
@@ -283,10 +285,11 @@ function colorMarkersFromLegend(){
     var filtered = markersGroup.selectAll("circle")
       .filter(function(d) { return d[activeFilterVariable] === answer });
     var colorSearch = "[data-fillanswer='" + answer + "']";
-    var color = $(colorSearch).children().css("background-color");
+    var color = $(colorSearch).children(".fillColorBox").css("background-color");
     var colorHex = d3.rgb(color).toString();
     filtered.attr("fill", colorHex);
   });
+  getCounts();
 }
 
 function setLegendColor(){
@@ -557,8 +560,6 @@ function filterMap(){
 
 
 
-
-
   // count the number of markers that are both visible (in Admin selection)
   // and also not .filteredOut
   var filteredInCount = 0;
@@ -574,7 +575,34 @@ function filterMap(){
     .each(function(d){ filteredInCount ++; });
   $("#filteredForAreaCount").html(formatCommas(filteredInCount));
 
+  getCounts();
   setHeat();
+
+}
+
+function getCounts(){
+  d3.selectAll(".answerCount").each(function(d){
+    var thisCount = 0;
+    var visibleCount = 0;
+    var answer = d3.select(this).attr("data-countanswer");
+    var variable = d3.select(this).attr("data-countvariable");
+    markersGroup.selectAll("circle")
+      .filter(function(d) {return this.style.display == 'inline'})
+      .filter(function(d) {
+        if(d3.select(this).classed('filteredOut') == true){
+          return false
+        } else {
+          return true
+        }
+      }).each(function(d){ visibleCount ++; })
+      .filter(function(d) {return d[variable] == answer})
+      .each(function(d){ thisCount ++; });
+    var thisHtml = formatCommas(thisCount.toString()) + " - " + formatPerc(thisCount / visibleCount);
+    d3.select(this).html(thisHtml);
+
+  });
+
+// <span class="answercount" data-countanswer="___" data-countvariable="_____"> X </span>
 
 }
 
