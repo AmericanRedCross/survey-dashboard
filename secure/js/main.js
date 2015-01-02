@@ -128,6 +128,7 @@ function getSurveyData(){
       .attr("fill", "#ed1b2e")
       .style('display','inline')
       .attr('class','mappedMarkers')
+      
       .on("click",clickedMarker);
     // when map view changes adjust the locations of the svg circles
     function updatemarker(){
@@ -621,21 +622,42 @@ function toggleMarkerStroke(x){
 }
 
 
-
-
-
-
+// populating the modal
 function clickedMarker(e){
   // -e- is the data object
   // -this- is the svg circle element
-  var modalHtml = "";
-  $.each(tempForMarkerModal, function(index, item){
-    modalHtml += "<strong>"+item+":</strong> "+e[item]+"<br>";
-  });
 
-  $('#modal-ben-title').html(e.hh_head_first + " " + e.hh_head_last);
-  $('#modal-ben-body').html(modalHtml);
+  // use boostrap tooltip for explaining variables
+  $.each(tempForMarkerModal, function(index, item){
+    $('#info1').html("Placeholder for info");
+    $('#info2').html("Placeholder for more info");
+      if (e.headhousemarital == 'living_together'){
+        e.headhousemarital = 'Living together';
+      }
+
+    $('#maritalstatus').html(e.headhousemarital);
+    $('#numberofhhmembers').html("<strong>" + "Household Members " + "</strong>" + "Placeholder");
+    $('#income').html(e.income_postR + " pesos HH income");
+    $('#vulnerability').html("<strong>" + "Vulnerability Level " + "</strong>" +e.VulnerableIndex);
+    
+    $('#shelter1').html("<strong>" + '<style="color: #e00";>' + "Assistance " + "</style>" + "</strong>" + e["shelterbeneficaries.1"]);
+    $('#shelter2').html("<strong>" + "Damage Index " + "</strong>" +e.DamageIndex);
+    $('#livelihoods1').html("<strong>" + "Beneficiary? " + "</strong>" + e.livelihoods_bene);
+    $('#livelihoods2').html("<strong>" + "Intervention Type " + "</strong>" +e.AssetChange);
+    $('#watasan1').html("<strong>" + "Intervention Type " + "</strong>" + e.handwashing_access);
+    $('#watsan2').html("<strong>" + "Intervention Type " + "</strong>" +e.toilet_access);
+    $('#photo1').attr({
+      src:e.hoh_photo,
+      title:"Head of household photo",
+      alt:"Head of household headshot"
+    })
+        // modalHtml +=
+  });
+  $('#name').html(e.hh_head_first + " " + e.hh_head_last);
+  //placeholder for address info when it comes
+  $('#address').html("Address, " + e.barangayname + ", " + e.municipalityname);
   $('#modal-ben').modal();
+
 }
 
 
