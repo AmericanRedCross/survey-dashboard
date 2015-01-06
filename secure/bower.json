@@ -1,0 +1,24 @@
+{
+  "name": "TTL_Household_Dashboard",
+  "version": "0.0.0",
+  "authors": [
+    "danbjoseph <danbjoseph@gmail.com>"
+  ],
+  "description": "TTL household enumeration survey",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "~3.5.3",
+    "bootstrap": "~3.3.1",
+    "jquery": "1.11.1",
+    "leaflet": "~0.7.3",
+    "spectrum": "~1.6.0"
+  }
+}
