@@ -4,7 +4,9 @@ TTL Household Dashboard
 **Install:**
 ```shell
   git clone https://github.com/AmericanRedCross/TTL_Household_Dashboard.git
-  cd TTL_Household_Dashboard
+  cd TTL_Household_Dashboard/secure
+  bower install
+  cd ../
   npm install
   forever start ttl_dashboard.js
 ```
@@ -16,9 +18,9 @@ Open up a browser and go to:
 
 
 **Technology Used:**
-- [D3.js](http://d3js.org/) v3.4.13
-- [Bootstrap](http://getbootstrap.com/) v3.3.0
-- [jQuery](https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js) v1.11.1
-- [Leaflet.js](http://leafletjs.com/) v0.7.3
-- [Leaflet.heat](https://github.com/Leaflet/Leaflet.heat) v0.1.2
-- [Spectrum colorpicker](https://github.com/bgrins/spectrum) v1.6.0
+- [D3.js](http://d3js.org/)
+- [Bootstrap](http://getbootstrap.com/) 
+- [jQuery](https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js)
+- [Leaflet.js](http://leafletjs.com/)
+- [Leaflet.heat](https://github.com/Leaflet/Leaflet.heat)
+- [Spectrum colorpicker](https://github.com/bgrins/spectrum)

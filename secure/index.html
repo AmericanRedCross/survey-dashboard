@@ -9,14 +9,16 @@
     <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon"/>
 
     <title>TTL Household Dashboard</title>
+    
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="bower_components/spectrum/spectrum.css" />
+    <!-- endbower -->
 
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/leaflet.css" rel="stylesheet">
     <link href="css/Control.Loading.css" rel="stylesheet">
     <link href="css/custom.css" rel="stylesheet">
-    <link href="css/spectrum.css" rel="stylesheet">
     <link href="css/modal-ben.css" rel="stylesheet">
-
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -215,14 +217,20 @@
       </div> <!-- /.col-sm-4 -->
     </div> <!-- /.container-fluid -->
 
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/leaflet.js"></script>
-    <script src="js/leaflet-heat.js"></script>
-    <script src="js/Control.Loading.js"></script>
-    <script src="js/spectrum.js"></script>  
-    <script src="js/d3.min.js"></script>
-    <script src="js/main.js"></script>
+
+   <!-- bower:js -->
+   <script src="bower_components/jquery/dist/jquery.js"></script>
+   <script src="bower_components/d3/d3.js"></script>
+   <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+   <script src="bower_components/leaflet/dist/leaflet.js"></script>
+   <script src="bower_components/leaflet/dist/leaflet-src.js"></script>
+   <script src="bower_components/spectrum/spectrum.js"></script>
+   <!-- endbower -->
+
+  <script src="js/leaflet-heat.js"></script>
+  <script src="js/Control.Loading.js"></script>
+
+  <script src="js/main.js"></script>
 
   </body>
 </html>
