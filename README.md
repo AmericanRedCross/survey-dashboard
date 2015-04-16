@@ -1,22 +1,21 @@
-TTL Household Dashboard
-==========
+survey dashboard
+================
 
-**Install:**
+We've used ODK to collect all these geo-tagged surveys, let's look at it on a map.
+
+- clone repository
+- edit userauth.js.example  
+- save as userauth.js
+- create 'secure/data' folder then add data and analysis files
+- install dependencies and start node app:
 ```shell
-  git clone https://github.com/AmericanRedCross/survey-dashboard.git
-  cd survey-dashboard/secure
+  cd ~/survey-dashboard/secure
   bower install
   cd ../
   npm install
   forever start survey-dashboard.js
 ```
-edit userauth.js.example
-save as userauth.js
-
-add data files
-
-Open up a browser and go to:
-[http://localhost:3008/secure](http://localhost:3008/secure)
+- Open up a browser and go to: [http://localhost:3008](http://localhost:3008)
 
 
 **Technology Used:**
