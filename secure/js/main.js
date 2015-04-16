@@ -1,8 +1,17 @@
+var config = {
+  "dataFile":"RITA-data.csv",
+  "planFile":"RITA-analysis.csv",
+  "adminLvls":3,
+  "adminNames":{
+    0:"region",
+    1:"country",
+    2:"community"
+  }
+}
+
+
 // global variables
-var activeMunicipalityName = "";
-var activeMunicipalityCode = "ALL";
-var activeBarangayName = "";
-var activeBarangayCode = "ALL";
+var activeAdmins = {};
 
 var shownSurveysCount = 0;
 
@@ -13,8 +22,6 @@ var visibleFeatures = {
  	"type": "FeatureCollection",
  	"features": []
 };
-
-var tempForMarkerModal = ["municipalityname","Mun_Code","barangayname","Bar_Code","hh_id","hh_head_last","hh_head_first","hh_head_middle","hh_head_suffix","hh_sex","Femaleheadhh","ageyear","who_is_respondent","headhousemarital","livelihoods_bene","shelterbeneficaries","HighestLevel","electricity_connectionR","mosquito_netsR","income_preR","income_postR","incomechange","WorkPaidLastMonthR","WorkUnPaidLastMonthR","farmlandtotal","post_yolanda_main_income_sourceR","TotalNumberIncomeSourcesEmploy","NumberSourcesAll","ChangeIncome","hh_debt","hh_bank_accountR","savings_yeswithoutR","AssetChange","have_a_houseR","currently_living_in","material_construction","why_move_to_location","LocationNoBuildR","land_ownershipr","proof_ownership","house_ownershipr","agreement_land","DamageIndex","damage_posts","damage_roof","damage_walls","damage_others","damage_toilets","shelterbeneficaries.1","totalhectares","hectares1R","agreement_house","occupy_land_yearCat","TotalHouseholdMembers","income_postR.1","AttenWalk","AttenSee","AttenHear","AttenRC","AttenSC","AttenCom","singleHHR","U18HHR","ChildU5R","FiveHHR","attentionR","Over60R","IncomeR","More7R","More10R","VulnerableIndex","water_table","sanitation_ownership","in_or_out","type_of_toilet","septic_tank","ServiceWaterCat","service_water","drinking_water","DrinkWaterCat","handwashing_access","toilet_access","GPS_latitude","GPS_longitude"];
 
 
 var color12 = [
@@ -65,14 +72,13 @@ var mapboxStreets = new L.TileLayer(mapboxStreetsUrl, {attribution: mapAttributi
   mapboxSat = new L.TileLayer(mapboxSatUrl, {attribution: mapAttribution, maxZoom: 17});
 
 var map = new L.Map("map", {
-	center: [11.1198, 124.8940],
-	zoom: 10,
-	minZoom: 9,
+	center: [0, 0],
+	zoom: 2,
+	minZoom: 2,
 	zoomControl: false,
   // scrollWheelZoom: false,
-  	layers: [hot]
+  layers: [hot]
 });
-
 
 var mappedHeatPoints = [];
 var heatLayer = new L.heatLayer(mappedHeatPoints).addTo(map);
@@ -113,13 +119,13 @@ var svg = d3.select("#map").select("svg");
 var markersGroup = svg.append('g').attr("id", "markers");
 
 
-
 function getSurveyData(){
-	d3.csv("data/SurveyData.csv", function(data){
+  var dataFile = 'data/' + config.dataFile;
+	d3.csv(dataFile, function(data){
 		surveyData = data;
     // add a LatLng object to each item in the dataset
     surveyData.forEach(function(d) {
-      d.LatLng = new L.LatLng(d.GPS_latitude,d.GPS_longitude);
+      d.LatLng = new L.LatLng(d.latitude,d.longitude);
     });
     // add a circle to the svg markers group for each survey point
     var mappedMarkers = markersGroup.selectAll("circle")
@@ -128,7 +134,7 @@ function getSurveyData(){
       .attr("fill", "#ed1b2e")
       .style('display','inline')
       .attr('class','mappedMarkers')
-      
+
       .on("click",clickedMarker);
     // when map view changes adjust the locations of the svg circles
     function updatemarker(){
@@ -151,7 +157,9 @@ function getSurveyData(){
 }
 
 function setupSurveyAnalysis(){
-  d3.csv("data/analysis_plan.csv", function(data){
+  var planFile = 'data/' + config.planFile;
+
+  d3.csv(planFile, function(data){
     analysisPlan = data;
     var categoryList = [];
     $.each(analysisPlan, function(index, analyzeThis){
@@ -159,7 +167,7 @@ function setupSurveyAnalysis(){
         categoryList.push(analyzeThis["Category"]);
       }
     });
-    categoryList = categoryList.sort();
+    // categoryList = categoryList.sort();
     for(var i = 0; i < categoryList.length; i++) {
       var item = categoryList[i];
       var questionsListSectionHtml = '<h4>' + item + '</h4>' + '<div id="modal-questions-options-' + item.replace(/\s+/g, '') + '"></div>';
@@ -172,36 +180,108 @@ function setupSurveyAnalysis(){
       var questionSelector = "#modal-questions-options-" + analyzeThis["Category"];
       $(questionSelector).append(questionsListItemHtml);
     });
-  buildMunicipalityDropdown();
+  buildAdminBtns();
   });
 }
 
 
+function buildAdminBtns() {
+  // create a button dropdown for each admin level
+  // create object to hold active admins
+  for(i=0; i < config.adminLvls; i++){
+    var thisBtnHtml = '<div class="btn-group"><button type="button" ' +
+      'class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">' +
+      'Select a ' + config.adminNames[i] + ' <span class="caret"></span></button>' +
+      '<ul id="dropdown-menu-admin' + i + '" class="dropdown-menu dropdown-menu-left" role="menu">'+
+      '<li class="disabled"><a role="menuitem" href="#">First select a '+
+      config.adminNames[i-1] +'</a></li>'
+      '</ul></div>';
+    $('#admin-btns').append(thisBtnHtml);
+    activeAdmins[i] = "ALL";
+  }
 
-function buildMunicipalityDropdown() {
-  // get list of muncipalities from survey data
-  var municipalityList = [];
-  var municipalityAdminLookup = {};
+  // populate the admin0 list
+  var admin0List = [];
   $.each(surveyData, function(index, survey){
-    var thisMunicipality = survey["municipalityname"];
-    if($.inArray(thisMunicipality, municipalityList) === -1){
-      municipalityList.push(thisMunicipality);
-      municipalityAdminLookup[thisMunicipality] = survey["Mun_Code"];
+    var thisAdmin = survey[config.adminNames[0]];
+    if($.inArray(thisAdmin, admin0List) === -1){
+      admin0List.push(thisAdmin);
     }
   });
   // sort so that the admins appear in alphabetical order in dropdown
-  municipalityList = municipalityList.sort();
+  admin0List = admin0List.sort();
   // create item elements in dropdown list
-  for(var i = 0; i < municipalityList.length; i++) {
-      var item = municipalityList[i];
-      var listItemHtml = '<li><a id="'+ municipalityAdminLookup[item] +'" href="#" onClick="municipalitySelect(' +"'"+ municipalityAdminLookup[item] +"'"+ '); return false;">' + item + "</a></li>"
-      $('#dropdown-menu-municipality').append(listItemHtml);
+  $('#dropdown-menu-admin0').empty();
+  for(var i = 0; i < admin0List.length; i++) {
+      var item = admin0List[i];
+      var listItemHtml = '<li><a id="'+ item +
+      '" href="#" onClick="adminSelect(' +"'"+ item +
+      "'" + ', 0); return false;">' + item + "</a></li>"
+      $('#dropdown-menu-admin0').append(listItemHtml);
   }
   $("#selected-survey-count").html(formatCommas(surveyData.length.toString()));
-  
+
   filterMap();
 }
 
+function adminSelect(adminData, adminLvl){
+  activeAdmins[adminLvl] = adminData;
+
+  var newAdminLvl =  adminLvl + 1;
+  if(newAdminLvl < config.adminLvls){
+    //clear dropdowns and reset activAdmins object
+    for(var i = newAdminLvl; i < config.adminLvls; i++){
+      var selector = '#dropdown-menu-admin' + i;
+      $(selector).html('<li class="disabled"><a role="menuitem" href="#">First select a '+
+      config.adminNames[i-1] +'</a></li>');
+      activeAdmins[i] = "ALL";
+    }
+
+    // build next admin lvl dropdown
+    var thisAdminList = [];
+    $.each(surveyData, function(index, survey){
+      var thisAdmin = survey[config.adminNames[newAdminLvl]];
+      var include = true;
+      // check to see if the survey has higher admin lvls matching the active
+      // admin lvls (deals w scenario like admin2 with same name but in diff admin 1)
+      for(var i = adminLvl; i >= 0; i--){
+        if(survey[config.adminNames[i]] !== activeAdmins[i]){
+          include = false;
+        }
+      }
+      if(include === true && $.inArray(thisAdmin, thisAdminList) === -1){
+        thisAdminList.push(thisAdmin);
+      }
+    });
+    // sort so that the admins appear in alphabetical order in dropdown
+    thisAdminList = thisAdminList.sort();
+    // create item elements in dropdown list
+    var selector = '#dropdown-menu-admin' + newAdminLvl;
+    $(selector).html("");
+    for(var i = 0; i < thisAdminList.length; i++) {
+        var item = thisAdminList[i];
+        var listItemHtml = '<li><a id="'+ item +
+        '" href="#" onClick="adminSelect(' +"'"+ item +
+        "'" + ', ' + newAdminLvl + '); return false;">' + item + "</a></li>"
+        $(selector).append(listItemHtml);
+    }
+  }
+
+  // display the active admin names on page
+  $("#selected-admin-label").empty();
+  for(var i = 0; i < config.adminLvls; i++) {
+    var item = activeAdmins[i];
+    if(item !== "ALL"){
+      if(i !== 0){
+        $("#selected-admin-label").append(', ');
+      }
+      $("#selected-admin-label").append(item);
+    }
+  }
+
+  console.log(activeAdmins);
+  filterMap();
+}
 
 
 function openQuestionsModal(modalType){
@@ -239,7 +319,7 @@ function fillQuestionSelect(variableSelected, listItem){
     var selector = "colorPicker" + index;
     selectorList.push(selector);
     var thisHtml ='<div data-fillanswer="' + answer + '"><span id="' + selector +
-      '" class="fillColorBox clickable"></span>' + answer + 
+      '" class="fillColorBox clickable"></span>' + answer +
       ' (<span class="answerCount" data-countanswer="'+ answer +'" data-countvariable="'+ variableSelected +'">X</span>)'+
       '</div>';
     $("#legend-fill").append(thisHtml);
@@ -250,7 +330,7 @@ function fillQuestionSelect(variableSelected, listItem){
   });
 
 
-  // add colorPicker to each of the fillColorBox 
+  // add colorPicker to each of the fillColorBox
   $.each(selectorList, function(index, colorBox){
     var formattedSelector = "#" + colorBox;
     var presetColor = d3.select(formattedSelector).style("background-color");
@@ -273,7 +353,7 @@ function fillQuestionSelect(variableSelected, listItem){
         ["#8dd3c7","#ffffb3","#bebada","#fb8072"],
         ["#80b1d3","#fdb462","#b3de69","#fccde5"],
         ["#bc80bd","#ccebc5","#ffed6f","#ffffff"],
-        ["#d9d9d9","#969696","#525252","#000000"] 
+        ["#d9d9d9","#969696","#525252","#000000"]
       ]
     });
   });
@@ -291,10 +371,6 @@ function colorMarkersFromLegend(){
     filtered.attr("fill", colorHex);
   });
   getCounts();
-}
-
-function setLegendColor(){
-  console.log("now it gets interesting");
 }
 
 
@@ -413,59 +489,19 @@ function removeAllFilters(){
 }
 
 function resetAdmin() {
-  activeMunicipalityCode = "ALL";
-  activeBarangayCode = "ALL";
-  activeMunicipality = "";
-  activeBarangay = "";
-  $('#dropdown-menu-barangay').html('<li class="disabled"><a role="menuitem" href="#">First select a municipality</a></li>');
+  activeAdmins[0] = "ALL";
+  for(var i = 1; i < config.adminLvls; i++){
+    var selector = '#dropdown-menu-admin' + i;
+    $(selector).html('<li class="disabled"><a role="menuitem" href="#">First select a '+
+      config.adminNames[i-1] +'</a></li>');
+    activeAdmins[i] = "ALL";
+  }
   $("#selected-admin-label").html("All surveyed areas");
   filterMap();
 }
 
 
 
-function municipalitySelect(p2){
-  activeMunicipalityCode = p2;
-  activeBarangayCode = "ALL";
-
-  var selector = "#" + p2;
-  activeMunicipalityName = $(selector).html();
-  $("#selected-admin-label").html(activeMunicipalityName);
-
-  //build barangay dropdown
-  $('#dropdown-menu-barangay').empty();
-  var barangayList = [];
-  var barangayAdminLookup = {};
-  $.each(surveyData, function(index, survey){
-    if(survey["Mun_Code"] === activeMunicipalityCode){
-      var thisBarangay = survey["barangayname"];
-      if($.inArray(thisBarangay, barangayList) === -1){
-        barangayList.push(thisBarangay);
-        barangayAdminLookup[thisBarangay] = survey["Bar_Code"];
-      }
-    }
-  });
-  // sort so that they appear in alphabetical order in dropdown
-  barangayList = barangayList.sort();
-  // create item elements in dropdown list
-  for(var i = 0; i < barangayList.length; i++) {
-      var item = barangayList[i];
-      var listItemHtml = '<li><a id="'+ barangayAdminLookup[item] +'" href="#" onClick="barangaySelect(' +"'"+ barangayAdminLookup[item] +"'"+ '); return false;">' + item + "</a></li>";
-      $('#dropdown-menu-barangay').append(listItemHtml);
-  }
-
-  filterMap();
-}
-
-
-function barangaySelect(p3) {
-  activeBarangayCode = p3;
-  var selector = "#" + p3;
-  activeBarangayName = $(selector).html();
-  $("#selected-admin-label").html(activeMunicipalityName + ", "+ activeBarangayName);
-
-  filterMap();
-}
 
 
 function mapToBounds(){
@@ -490,13 +526,14 @@ function filterMap(){
       "geometry": {
         "type": "Point",
           "coordinates": [
-            input.GPS_longitude,
-            input.GPS_latitude
+            input.longitude,
+            input.latitude
           ]
       }
     };
     visibleFeatures.features.push(thisPoint);
   }
+
 
   var conductedSurveyCount = 0;
   // hide all markers
@@ -505,11 +542,18 @@ function filterMap(){
   // active admin codes are global variables set when the selections are made from admin dropdowns
   markersGroup.selectAll("circle").each(function(d){
     d3.select(this).classed({'inAdmin':false, 'inFilters':false});
-    if(d["Mun_Code"] == activeMunicipalityCode || activeMunicipalityCode == "ALL"){
-      if(d["Bar_Code"] == activeBarangayCode || activeBarangayCode == "ALL"){
-        d3.select(this).classed('inAdmin', true);
-        conductedSurveyCount ++;
+    var adminCheck = true;
+    for(var i = config.adminLvls - 1; i >= 0; i--){
+      if(d[config.adminNames[i]] !== activeAdmins[i]){
+        adminCheck = false;
+        if(activeAdmins[i] == "ALL"){
+          adminCheck = true;
+        }
       }
+    }
+    if(adminCheck == true){
+      d3.select(this).classed('inAdmin', true);
+      conductedSurveyCount ++;
     }
   });
   // update HTML on page showing survey count for selected admin area
@@ -578,6 +622,7 @@ function filterMap(){
 
   getCounts();
   setHeat();
+  mapToBounds();
 
 }
 
@@ -613,7 +658,7 @@ function toggleMarkerStroke(x){
   if($(x).hasClass("stroke-shown") === false){
     markersGroup.selectAll("circle").attr('stroke','none');
     $(x).children().removeClass("glyphicon-eye-open");
-    $(x).children().addClass("glyphicon-eye-close");  
+    $(x).children().addClass("glyphicon-eye-close");
   } else {
     markersGroup.selectAll("circle").attr('stroke','#222222');
     $(x).children().removeClass("glyphicon-eye-close");
@@ -622,41 +667,10 @@ function toggleMarkerStroke(x){
 }
 
 
-// populating the modal
+
 function clickedMarker(e){
   // -e- is the data object
   // -this- is the svg circle element
-
-  // use boostrap tooltip for explaining variables
-  $.each(tempForMarkerModal, function(index, item){
-    $('#info1').html("Placeholder for info");
-    $('#info2').html("Placeholder for more info");
-      if (e.headhousemarital == 'living_together'){
-        e.headhousemarital = 'Living together';
-      }
-
-    $('#maritalstatus').html(e.headhousemarital);
-    $('#numberofhhmembers').html("<strong>" + "Household Members " + "</strong>" + "Placeholder");
-    $('#income').html(e.income_postR + " pesos HH income");
-    $('#vulnerability').html("<strong>" + "Vulnerability Level " + "</strong>" +e.VulnerableIndex);
-    
-    $('#shelter1').html("<strong>" + '<style="color: #e00";>' + "Assistance " + "</style>" + "</strong>" + e["shelterbeneficaries.1"]);
-    $('#shelter2').html("<strong>" + "Damage Index " + "</strong>" +e.DamageIndex);
-    $('#livelihoods1').html("<strong>" + "Beneficiary? " + "</strong>" + e.livelihoods_bene);
-    $('#livelihoods2').html("<strong>" + "Intervention Type " + "</strong>" +e.AssetChange);
-    $('#watasan1').html("<strong>" + "Intervention Type " + "</strong>" + e.handwashing_access);
-    $('#watsan2').html("<strong>" + "Intervention Type " + "</strong>" +e.toilet_access);
-    $('#photo1').attr({
-      src:e.hoh_photo,
-      title:"Head of household photo",
-      alt:"Head of household headshot"
-    })
-        // modalHtml +=
-  });
-  $('#name').html(e.hh_head_first + " " + e.hh_head_last);
-  //placeholder for address info when it comes
-  $('#address').html("Address, " + e.barangayname + ", " + e.municipalityname);
-  $('#modal-ben').modal();
 
 }
 

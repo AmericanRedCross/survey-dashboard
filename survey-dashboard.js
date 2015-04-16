@@ -48,7 +48,7 @@ app.configure(function() {
   app.use(passport.initialize());
   app.use(app.router);
   app.use(express.static(__dirname + '/'));
-  // app.use(express.static(__dirname + '/secure'));
+  app.use(express.static(__dirname + '/secure'));
 });
 
 

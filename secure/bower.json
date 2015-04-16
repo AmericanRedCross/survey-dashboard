@@ -17,7 +17,7 @@
   "dependencies": {
     "d3": "~3.5.3",
     "bootstrap": "~3.3.1",
-    "jquery": "1.11.1",
+    "jquery": "~1",
     "leaflet": "~0.7.3",
     "spectrum": "~1.6.0"
   }

@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon"/>
 
     <title>TTL Household Dashboard</title>
-    
+
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
@@ -18,7 +18,6 @@
 
     <link href="css/Control.Loading.css" rel="stylesheet">
     <link href="css/custom.css" rel="stylesheet">
-    <link href="css/modal-ben.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -30,101 +29,6 @@
   </head>
   <body>
 
-<div id="modal-ben" class="modal fade">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div id="modal-ben-title" class="modal-header">
-        <div class="col-md-6 col-lg-5"><p id="name"></p></div>
-        <div class="col-md-6 col-lg-7"><p id="address" style="text-align:right;text-align:bottom;font-style:italic;font-size:70%"></p></div>
-      </div>
-      <div id="modal-ben-body" class="modal-body">
-        <div id="profile-title" class="header">PROFILE</div>
-        <div id="profile" class="row">
-          <div class="col-lg-4">
-          <!--ids here are used to replaced the text from a jquery / JS function. Keep <p> boxes empty, populate on teh fly -->
-            <p id="info1"></p>
-            <p id="info2"></p>
-          </div>
-          <div class="col-lg-4">
-            <p id="maritalstatus"></p>
-            <p id="numberofhhmembers"></p>
-          </div>
-          <div class="col-lg-4">
-            <p id="income"></p>
-            <p id="vulnerability"></p>
-          </div>
-        </div>
-        <div id="photo-title" class="header">PHOTOS</div>
-        <!--    Begin Carousel -->
-        <div id="photos">
-          <div class="item1">
-            <img id="hoh_photo">
-              <div class="carousel-caption">
-                <h4>Shelter</h4>
-              </div>
-          </div>
-          <div class="item2">
-            <img id="shelter_photo">
-              <div class="carousel-caption">
-                <h4>Head of household</h4>
-              </div>
-          </div>
-          <div class="item3">
-            <img id="toilet_photo">
-              <div class="carousel-caption">
-                <h4>Toilet</h4>
-              </div>
-          </div>
-        </div>
-          <!-- End Carousel -->
-        <div id="status-title" class="header">STATUS</div>
-        <div id="status">
-          <p style="text-align:center;font-size:175%;">Overall Progress</p>
-          <div class="progress" style="width:75%;">
-            <div id="overall_bar" class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%;">
-              <span class="sr-only">40% Complete (success)</span>
-            </div>
-          </div>
-          <div id="status columns" class="row">
-            <div class="col-lg-4">
-              <h3 style="text-align:center">Shelter</h3>
-                <div class="progress">
-                  <div id="shelter_bar" class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
-                    <span class="sr-only">20% Complete</span>
-                  </div>
-                </div>
-              <p id="shelter1"></p>
-              <p id="shelter2"></p>
-            </div>
-            <div class="col-lg-4">
-              <h3 style="text-align:center">Livelihoods</h3>
-                <div class="progress">
-                  <div id="livelihoods_bar" class="progress-bar progress-bar-warning progress-bar-striped" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
-                    <span class="sr-only">60% Complete (warning)</span>
-                  </div>
-                </div>
-              <p id="livelihoods1"></p>
-              <p id="livelihoods2"></p>
-            </div>
-            <div class="col-lg-4">
-              <h3 style="text-align:center">WatSan</h3>
-                <div class="progress">
-                  <div id="watsan_bar" class="progress-bar progress-bar-danger progress-bar-striped" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">
-                    <span class="sr-only">80% Complete (danger)</span>
-                  </div>
-                </div>
-              <p id="watsan1"></p>
-              <p id="watsan2"></p>
-            </div>
-          </div>
-        </div>                                
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
 
 <div id="modal-questions" class="modal fade">
   <div class="modal-dialog modal-lg">
@@ -145,7 +49,7 @@
 </div><!-- /.modal -->
 
     <div id="tooltip"></div>
-    
+
     <div id="loading-wrapper">
       <div id="loading-progress">
         <img id="loader" src="img/ajax_loader_gray_512.gif" />
@@ -169,21 +73,14 @@
           <p class="nav-text"> <span id="selected-admin-label">All surveyed areas</span>
           <small>(<span id="conductedForAreaCount">X</span> surveys in area and <span id="filteredForAreaCount">X</span> fit filters)</small></p>
 
-          <div class="btn-group">
-            <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-              Select a Municipality <span class="caret"></span>
-            </button>
-            <ul id="dropdown-menu-municipality" class="dropdown-menu dropdown-menu-left" role="menu"></ul>
+
+          <div id="admin-btns">
+
           </div>
 
-          <div class="btn-group">
-            <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-              Select a Barangay <span class="caret"></span>
-            </button>
-            <ul id="dropdown-menu-barangay" class="dropdown-menu dropdown-menu-left" role="menu">
-              <li class="disabled"><a role="menuitem" href="#">First select a municipality</a></li>
-            </ul>
-          </div>
+
+
+
           <button class="btn btn-xs btn-default" type="button" onClick="mapToBounds();">
             <span class="glyphicon glyphicon-search"></span>
           </button>
