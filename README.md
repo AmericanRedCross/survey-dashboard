@@ -7,15 +7,16 @@ We've used ODK to collect all these geo-tagged surveys, let's look at it on a ma
 - edit userauth.js.example  
 - save as userauth.js
 - create 'secure/data' folder then add data and analysis files
+- adjust port as desired in 'settings/settins.js'
 - install dependencies and start node app:
 ```shell
   cd ~/survey-dashboard/secure
   bower install
   cd ../
   npm install
-  forever start survey-dashboard.js
+  pm2 start survey-dashboard.js
 ```
-- Open up a browser and go to: [http://localhost:3008](http://localhost:3008)
+- Open up a browser and go to: [http://localhost:3009](http://localhost:3009) or set port
 
 
 **Technology Used:**

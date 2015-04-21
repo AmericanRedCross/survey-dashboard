@@ -177,7 +177,7 @@ function setupSurveyAnalysis(){
       var dataDescription = analyzeThis["Data Description"];
       var variableName = analyzeThis["Variable Name"];
       var questionsListItemHtml = '<a class="modal-questions-link" id="modal-question-'+ variableName +'" href="#" onClick="return false;">' + dataDescription + "</a><br>";
-      var questionSelector = "#modal-questions-options-" + analyzeThis["Category"];
+      var questionSelector = "#modal-questions-options-" + analyzeThis["Category"].replace(/\s+/g, '');
       $(questionSelector).append(questionsListItemHtml);
     });
   buildAdminBtns();
@@ -508,9 +508,11 @@ function mapToBounds(){
   // visible markers FeatureCollection updated inside FilterMap function
   // get bounds of all visible markers
   var bounds = d3.geo.bounds(visibleFeatures);
+  console.log(bounds);
   // reformat bounds arrays for compatibility with Leaflet and fit map to bounds
-  var padding = {"padding":[0,0]};
-  map.fitBounds([[Number(bounds[1][1]), Number(bounds[1][0])], [Number(bounds[0][1]), Number(bounds[0][0])]], padding);
+  var padding = {"padding":[5,5]};
+  map.fitBounds([[bounds[1][1], bounds[1][0]], [bounds[0][1], bounds[0][0]]], padding);
+
 }
 
 
@@ -526,8 +528,8 @@ function filterMap(){
       "geometry": {
         "type": "Point",
           "coordinates": [
-            input.longitude,
-            input.latitude
+            Number(input.longitude),
+            Number(input.latitude)
           ]
       }
     };

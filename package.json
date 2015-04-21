@@ -4,16 +4,13 @@
   "description": "TTL Survey Dashboard",
   "main": "ttl_dashboard.js",
   "dependencies": {
-    "forever": "~0.10.9",
-    "passport": "~0.1.17",
     "express": "~3.4.4",
+    "passport": "~0.1.17",
     "passport-http": "~0.2.2",
+    "pm2": "^0.12.11",
     "util": "~0.4.9"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

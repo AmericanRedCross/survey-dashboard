@@ -1,8 +1,11 @@
 var express = require('express')
   , passport = require('passport')
   , util = require('util')
+  , app = express()
+  , settings = require('./settings/settings.js')
   , BasicStrategy = require('passport-http').BasicStrategy
   , userauth = require('./js/userauth.js');
+
 
 function findByUsername(username, fn) {
   for (var i = 0, len = users.length; i < len; i++) {
@@ -38,8 +41,6 @@ passport.use(new BasicStrategy({
   }
 ));
 
-var app = express();
-
 // configure Express
 app.configure(function() {
   app.use(express.logger());
@@ -63,4 +64,4 @@ app.get('/secure',
   passport.authenticate('basic', { session: false })
 );
 
-app.listen(3008);
+app.listen(settings.application.port);
