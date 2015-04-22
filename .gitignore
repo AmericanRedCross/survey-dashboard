@@ -4,6 +4,7 @@ userauth.js
 SurveyData.csv
 node_modules
 secure/data
+bower_components
 
 # Compiled source #
 ###################
