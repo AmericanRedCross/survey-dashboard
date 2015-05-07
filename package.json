@@ -1,8 +1,8 @@
 {
-  "name": "TTL_Dashboard",
+  "name": "Survey Dashboard",
   "version": "0.0.1",
-  "description": "TTL Survey Dashboard",
-  "main": "ttl_dashboard.js",
+  "description": "ODK Survey Dashboard",
+  "main": "survey-dashboard.js",
   "dependencies": {
     "express": "~3.4.4",
     "passport": "~0.1.17",
@@ -16,12 +16,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AmericanRedCross/TTL_Household_Dashboard.git"
+    "url": "https://github.com/AmericanRedCross/survey-dashboard.git"
   },
   "author": "American Red Cross",
-  "license": "CC-BY",
+  "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/AmericanRedCross/TTL_Household_Dashboard/issues"
+    "url": "https://github.com/AmericanRedCross/survey-dashboard/issues"
   },
-  "homepage": "https://github.com/AmericanRedCross/TTL_Household_Dashboard"
+  "homepage": "https://github.com/AmericanRedCross/survey-dashboard"
 }

@@ -1,18 +1,16 @@
 {
-  "name": "TTL_Household_Dashboard",
+  "name": "Household Survey Dashboard",
   "version": "0.0.0",
   "authors": [
     "danbjoseph <danbjoseph@gmail.com>"
   ],
-  "description": "TTL household enumeration survey",
+  "description": "Household enumeration survey",
   "main": "index.html",
-  "license": "MIT",
+  "license": "GPLv3",
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "bower_components"
   ],
   "dependencies": {
     "d3": "~3.5.3",
