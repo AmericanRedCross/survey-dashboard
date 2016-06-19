@@ -1,14 +1,25 @@
+// // # TTL config
 var config = {
-  "dataFile":"RITA-data.csv",
-  "planFile":"RITA-analysis.csv",
-  "adminLvls":3,
+  "dataFile":"TTL-data.csv",
+  "planFile":"TTL-analysis.csv",
+  "adminLvls":2,
   "adminNames":{
-    0:"region",
-    1:"country",
-    2:"community"
+    0:"municipalityname",
+    1:"barangayname"
   }
 }
 
+// // # RITA config
+// var config = {
+//   "dataFile":"RITA-data.csv",
+//   "planFile":"RITA-analysis.csv",
+//   "adminLvls":3,
+//   "adminNames":{
+//     0:"region",
+//     1:"country",
+//     2:"community"
+//   }
+// }
 
 // global variables
 var activeAdmins = {};
