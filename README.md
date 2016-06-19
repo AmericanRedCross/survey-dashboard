@@ -4,12 +4,10 @@ survey dashboard
 We've used ODK to collect all these geo-tagged surveys, let's look at it on a map.
 
 - clone repository
-- edit userauth.js.example  
-- save as userauth.js
+- edit userauth.js.example and save as just userauth.js
 - create 'secure/data' folder then add data and analysis files
 - adjust port as desired in 'settings/settings.js'
 - adjust `var config = {...}` in 'secure/js/main.js'
-- add a 'secure/data' folder and add your data and plan files
 - install dependencies and start node app:
 ```shell
   cd ~/survey-dashboard/secure
